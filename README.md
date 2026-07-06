@@ -1,5 +1,11 @@
 # okf-kit
 
+[![CI](https://github.com/vinodborole/okf-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/vinodborole/okf-kit/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/okf-kit.svg)](https://pypi.org/project/okf-kit/)
+[![Python versions](https://img.shields.io/pypi/pyversions/okf-kit.svg)](https://pypi.org/project/okf-kit/)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![OKF spec](https://img.shields.io/badge/format-OKF%20v0.1-9A6B1F.svg)](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
+
 **Turn any website into a portable, agent-ready knowledge bundle — no LLM required to start.**
 
 `okf-kit` crawls a site into a
