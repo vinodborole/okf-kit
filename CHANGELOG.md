@@ -3,6 +3,17 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.1.8 — 2026-07-06
+
+### Fixed
+- **`okf visualize` graph no longer spins out of control.** The force layout
+  had no cooling — it re-applied full-strength forces every frame forever, so
+  with many nodes it jittered/drifted endlessly instead of settling. It now
+  anneals (an `alpha` that decays to zero and then freezes the layout), caps
+  the repulsion force so overlapping nodes don't fling apart, and damps
+  velocity harder. Dragging briefly reheats it, then it re-settles. Verified
+  numerically: post-settle movement drops from ~1935 to 0.
+
 ## 0.1.7 — 2026-07-06
 
 ### Fixed
@@ -135,6 +146,7 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.1.8]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.8
 [0.1.7]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.7
 [0.1.6]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.6
 [0.1.5]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.5
