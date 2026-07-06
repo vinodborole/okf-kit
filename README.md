@@ -54,6 +54,21 @@ pip install "okf-kit[enrich]"       # okf build --enrich (LLM descriptions + tag
 
 The default install has **no browser and no LLM SDK** — it installs in seconds.
 
+> **Tip:** install into a dedicated virtualenv so okf-kit's dependencies don't
+> mix with your other projects:
+> ```bash
+> python3 -m venv ~/okf && ~/okf/bin/pip install okf-kit
+> ```
+
+### Known limitations
+
+- **`[js]` extra dependency conflict** ([#6](https://github.com/vinodborole/okf-kit/issues/6)):
+  `pip install "okf-kit[js]"` currently fails to resolve because core's
+  `trafilatura` (2.x) requires `lxml>=6.1.1` while `crawl4ai` pins
+  `lxml~=5.3`. Until this is fixed in 0.1.1, install the `[js]` extra in its
+  **own** environment, separate from anything that pins an older `lxml`. Core
+  okf-kit (the default install, no browser) is unaffected.
+
 ## Commands
 
 ### Build

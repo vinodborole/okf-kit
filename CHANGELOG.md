@@ -43,4 +43,10 @@ okf chat docs-okf --provider ollama              # chat offline, no key
 - Apache-2.0. The lightweight library behind
   [calknowledge](https://github.com/vinodborole/calknowledge).
 
+### Known issues
+- The `[js]` extra can't be installed in the same environment as core:
+  `trafilatura` 2.x requires `lxml>=6.1.1` while `crawl4ai` pins `lxml~=5.3`.
+  Install `[js]` in its own environment for now. Tracked in
+  [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
+
 [0.1.0]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.0
