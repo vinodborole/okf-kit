@@ -46,7 +46,7 @@ def test_external_links_not_followed(fixture_site, tmp_path):
     # example.com/external must not appear as a page
     assert not (out / "pages" / "external.md").exists()
     md_files = [p for p in (out / "pages").rglob("*.md") if p.name != "index.md"]
-    assert 4 <= len(md_files) <= 6  # home, intro, install, config
+    assert 5 <= len(md_files) <= 7  # home, intro, install, config, faq
 
 
 def test_state_json_has_hashes(fixture_site, tmp_path):

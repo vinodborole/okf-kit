@@ -36,5 +36,5 @@ def test_cli_help_exits_zero():
 def test_later_command_reports_milestone(capsys):
     from okf_kit.cli import main
 
-    assert main(["sync", "somedir"]) == 2
-    assert "M2" in capsys.readouterr().err
+    assert main(["chat", "x"]) == 2
+    assert "M3" in capsys.readouterr().err
