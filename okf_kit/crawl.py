@@ -35,17 +35,57 @@ def make_fetcher(js: bool, *, respect_robots: bool = True, verbose: bool = False
     return HttpFetcher(respect_robots=respect_robots, verbose=verbose)
 
 
+def normalize_prefix(prefix: str) -> str:
+    """Ensure a user-supplied path prefix has leading and trailing slashes."""
+    p = "/" + prefix.strip().strip("/")
+    return p if p == "/" else p + "/"
+
+
+def scope_prefix_for(url: str) -> str:
+    """Derive the crawl scope from a seed/first-page URL: the section it lives
+    in. A path that looks like a file scopes to its directory; a path that
+    looks like a section (no extension) scopes under itself.
+
+        https://x/                -> /
+        https://x/book/           -> /book/   (normalize strips the slash first)
+        https://x/stable/book     -> /stable/book/
+        https://x/docs/intro.html -> /docs/
+    """
+    path = urlparse(url).path
+    if not path or path == "/":
+        return "/"
+    last = path.rsplit("/", 1)[-1]
+    if "." in last:
+        return path.rsplit("/", 1)[0] + "/"
+    return path + "/"
+
+
+def _in_scope(url_path: str, prefix: str) -> bool:
+    if prefix == "/":
+        return True
+    return url_path == prefix[:-1] or url_path.startswith(prefix)
+
+
 async def crawl_site(
     seed: str,
     *,
     fetcher,
     max_depth: int,
     max_pages: int,
+    path_prefix: str | None = None,
+    scope: bool = True,
     on_page=None,
-) -> list[Page]:
-    """BFS over same-host links; returns pages deduped by bundle path."""
+) -> tuple[list[Page], str]:
+    """BFS over same-host links within the path scope; returns (pages, prefix).
+
+    Scope: `path_prefix` if given (explicit), `/` if `scope=False` (whole host),
+    else auto-derived from the seed page's final (post-redirect) URL.
+    """
     seed = normalize_url(seed)
     seed_host = urlparse(seed).netloc
+    prefix = None if scope and path_prefix is None else (
+        "/" if not scope else normalize_prefix(path_prefix)
+    )
 
     pages: list[Page] = []
     seen_urls: set[str] = {seed}
@@ -61,6 +101,9 @@ async def crawl_site(
         for page in results:
             if page is None:
                 continue
+            # Auto-scope: the first fetched page (the seed, post-redirect) sets it.
+            if prefix is None:
+                prefix = scope_prefix_for(page.url)
             path = bundle_path_for(page.url)
             if path in seen_paths or not page.markdown.strip():
                 continue
@@ -74,13 +117,18 @@ async def crawl_site(
             if depth < max_depth:
                 for link in page.links:
                     norm = normalize_url(link)
-                    if urlparse(norm).netloc == seed_host and norm not in seen_urls:
+                    p = urlparse(norm)
+                    if (
+                        p.netloc == seed_host
+                        and norm not in seen_urls
+                        and _in_scope(p.path, prefix)
+                    ):
                         seen_urls.add(norm)
                         next_level.append(norm)
         current = next_level
         depth += 1
 
-    return pages
+    return pages, (prefix or "/")
 
 
 def build_bundle(
@@ -91,6 +139,8 @@ def build_bundle(
     max_pages: int = 200,
     js: bool = False,
     respect_robots: bool = True,
+    path_prefix: str | None = None,
+    all_paths: bool = False,
     verbose: bool = False,
 ) -> int:
     return asyncio.run(
@@ -101,12 +151,16 @@ def build_bundle(
             max_pages=max_pages,
             js=js,
             respect_robots=respect_robots,
+            path_prefix=path_prefix,
+            all_paths=all_paths,
             verbose=verbose,
         )
     )
 
 
-async def _build(url, *, output, max_depth, max_pages, js, respect_robots, verbose) -> int:
+async def _build(
+    url, *, output, max_depth, max_pages, js, respect_robots, path_prefix, all_paths, verbose
+) -> int:
     seed = normalize_url(url)
     bundle_dir = Path(output) if output else _default_output(seed)
     fetcher = make_fetcher(js, respect_robots=respect_robots, verbose=verbose)
@@ -117,8 +171,14 @@ async def _build(url, *, output, max_depth, max_pages, js, respect_robots, verbo
         print(f"  ✓ [{page.depth}] {page.url} -> {path}")
 
     try:
-        pages = await crawl_site(
-            seed, fetcher=fetcher, max_depth=max_depth, max_pages=max_pages, on_page=on_page
+        pages, prefix = await crawl_site(
+            seed,
+            fetcher=fetcher,
+            max_depth=max_depth,
+            max_pages=max_pages,
+            path_prefix=path_prefix,
+            scope=not all_paths,
+            on_page=on_page,
         )
     finally:
         await fetcher.close()
@@ -126,6 +186,9 @@ async def _build(url, *, output, max_depth, max_pages, js, respect_robots, verbo
     if not pages:
         print("No pages could be crawled — check the URL is reachable.", file=sys.stderr)
         return 1
+
+    if prefix != "/":
+        print(f"  (scope: paths under {prefix} — use --all-paths for the whole host)")
 
     ts = utcnow_iso()
     records = [r for r in (write_concept(bundle_dir, p, ts) for p in pages) if r]
@@ -139,6 +202,7 @@ async def _build(url, *, output, max_depth, max_pages, js, respect_robots, verbo
             "max_pages": max_pages,
             "fetcher": fetcher.kind,
             "respect_robots": respect_robots,
+            "path_prefix": prefix,
         },
         log_lines=[f"Built from {seed}: {len(records)} pages."],
         edges=compute_edges(pages, present),

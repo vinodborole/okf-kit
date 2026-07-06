@@ -34,6 +34,14 @@ def _build_parser() -> argparse.ArgumentParser:
     build.add_argument("--js", action="store_true", help="Render JavaScript (needs okf-kit[js])")
     build.add_argument("--no-robots", action="store_true", help="Ignore robots.txt")
     build.add_argument(
+        "--path-prefix", metavar="PATH",
+        help="Only crawl URLs under this path (default: auto — the seed's section)",
+    )
+    build.add_argument(
+        "--all-paths", action="store_true",
+        help="Crawl the whole host, not just the seed's path section",
+    )
+    build.add_argument(
         "--enrich", action="store_true",
         help="Add LLM descriptions + tags to frontmatter (needs okf-kit[enrich] + OPENAI_API_KEY)",
     )
@@ -111,6 +119,8 @@ def main(argv: list[str] | None = None) -> int:
             max_pages=args.max_pages,
             js=args.js,
             respect_robots=not args.no_robots,
+            path_prefix=args.path_prefix,
+            all_paths=args.all_paths,
             verbose=args.verbose,
         )
         if rc == 0 and args.enrich:

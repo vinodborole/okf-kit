@@ -3,6 +3,16 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.1.3 — 2026-07-06
+
+### Added
+- **Path-scoped crawling.** `okf build` now scopes the crawl to the seed's
+  path section by default (auto-derived from the seed's final, post-redirect
+  URL), so `okf build https://doc.rust-lang.org/book/` stays under `/book/`
+  instead of wandering into the rest of the host. Override with
+  `--path-prefix PATH` or `--all-paths` (whole host). The scope is stored in
+  `state.json` and honored by `sync`; pre-0.1.3 bundles default to whole-host.
+
 ## 0.1.2 — 2026-07-06
 
 ### Fixed
@@ -75,6 +85,7 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.1.3]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.3
 [0.1.2]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.2
 [0.1.1]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.1
 [0.1.0]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.0

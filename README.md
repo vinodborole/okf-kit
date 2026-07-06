@@ -79,10 +79,14 @@ okf build https://docs.example.com -o docs-okf --max-depth 3 --max-pages 200
 
 Domain-restricted BFS crawl → an OKF bundle: `pages/` mirror with frontmatter
 concepts, a `.okf-kit/state.json` for sync, and an `index.md` in every directory
-for agent navigation. Validated on exit. No API key needed. Flags: `--js`
-(JS-rendered sites), `--no-robots`, `--enrich` (add LLM descriptions/tags — needs
-`[enrich]` + `OPENAI_API_KEY`). If a site looks JavaScript-rendered, build tells
-you to re-run with `--js`.
+for agent navigation. Validated on exit. No API key needed.
+
+By default the crawl is **scoped to the seed's path section** — `okf build
+https://doc.rust-lang.org/book/` stays under `/book/` and won't wander into the
+rest of the host. Override with `--path-prefix PATH` (a narrower/different
+scope) or `--all-paths` (the whole host). Other flags: `--js` (JS-rendered
+sites — build hints when a site needs it), `--no-robots`, `--enrich` (add LLM
+descriptions/tags — needs `[enrich]` + `OPENAI_API_KEY`).
 
 ### Sync
 

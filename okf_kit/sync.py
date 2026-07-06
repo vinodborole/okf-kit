@@ -75,8 +75,18 @@ async def run_sync(
 
     print(f"okf sync: re-crawling {root_url}")
     fetcher = make_fetcher(js, respect_robots=config.get("respect_robots", True))
+    # Keep the original crawl scope. Pre-0.1.3 bundles have no path_prefix →
+    # default to whole-host so their page set doesn't shift on sync.
+    stored_prefix = config.get("path_prefix", "/")
     try:
-        crawled = await crawl_site(root_url, fetcher=fetcher, max_depth=depth, max_pages=pages_cap)
+        crawled, _ = await crawl_site(
+            root_url,
+            fetcher=fetcher,
+            max_depth=depth,
+            max_pages=pages_cap,
+            path_prefix=stored_prefix if stored_prefix and stored_prefix != "/" else None,
+            scope=stored_prefix != "/",
+        )
     finally:
         await fetcher.close()
 
