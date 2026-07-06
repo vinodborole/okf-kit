@@ -40,12 +40,13 @@ def test_validate_rejects_missing_type(tmp_path):
     assert validate_bundle(b, quiet=True) is False
 
 
-def test_zip_excludes_state_dir(tmp_path):
+def test_zip_single_root_includes_state(tmp_path):
     b = _make_bundle(tmp_path)
     (b / ".okf-kit").mkdir()
     (b / ".okf-kit" / "state.json").write_text("{}")
     out = zip_bundle(b, output=str(tmp_path / "out.zip"))
     names = zipfile.ZipFile(out).namelist()
     assert any(n.endswith("pages/a.md") for n in names)
-    assert not any(".okf-kit" in n for n in names)
+    # state is included so recipients can list/sync the downloaded bundle
+    assert any(n.endswith(".okf-kit/state.json") for n in names)
     assert all(n.startswith("bundle/") for n in names)

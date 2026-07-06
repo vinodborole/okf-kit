@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 from .mapper import normalize_url
 from .model import Page, utcnow_iso
 from .okf import validate_bundle
-from .writer import bundle_path_for, write_bundle_meta, write_concept
+from .writer import bundle_path_for, compute_edges, write_bundle_meta, write_concept
 
 _SHORT_PAGE_CHARS = 200
 _JS_HINT_RATIO = 0.30
@@ -129,6 +129,7 @@ async def _build(url, *, output, max_depth, max_pages, js, respect_robots, verbo
 
     ts = utcnow_iso()
     records = [r for r in (write_concept(bundle_dir, p, ts) for p in pages) if r]
+    present = {r.path for r in records}
     write_bundle_meta(
         bundle_dir,
         records,
@@ -140,6 +141,7 @@ async def _build(url, *, output, max_depth, max_pages, js, respect_robots, verbo
             "respect_robots": respect_robots,
         },
         log_lines=[f"Built from {seed}: {len(records)} pages."],
+        edges=compute_edges(pages, present),
     )
 
     short = sum(1 for p in pages if len(p.markdown) < _SHORT_PAGE_CHARS)

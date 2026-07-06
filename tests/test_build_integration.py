@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from okf_kit.crawl import build_bundle
 from okf_kit.config import STATE_DIRNAME, STATE_FILENAME

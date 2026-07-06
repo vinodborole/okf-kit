@@ -24,11 +24,21 @@ platform (LLM enrichment, RAG export, retrieval evals, GUI) built on top of it.
 
 Early development, built milestone by milestone:
 
-- **M0 — scaffolding** ✅ (this PR): package, CLI skeleton, CI, license
-- **M1 — build/validate/zip + HTTP fetcher**: crawl a site into a conformant bundle, no browser
-- **M2 — sync**: incremental re-crawl (add/change/remove only the delta)
-- **M3 — consume & talk**: registry (`list`/`get`), `chat` (any provider, offline via Ollama, zero-key retrieval fallback), `visualize` (interactive HTML graph), `serve-mcp`
+- **M0 — scaffolding** ✅ — package, CLI skeleton, CI, license
+- **M1 — build/validate/zip + HTTP fetcher** ✅ — crawl a site into a conformant bundle, no browser
+- **M2 — sync** ✅ — incremental re-crawl (add/change/remove only the delta)
+- **M3 — consume & talk** ✅ — registry (`list`/`get`), `chat` (any provider, offline via Ollama, zero-key retrieval fallback), `visualize` (interactive HTML graph), `serve-mcp`
 - **M4 — polish & release**: docs, PyPI
+
+```bash
+okf build https://docs.example.com -o docs-okf   # crawl → bundle (no key)
+okf sync docs-okf                                # incremental update
+okf chat docs-okf --provider ollama              # chat offline, no key
+okf chat docs-okf --provider openai --trace      # or any provider, with citations + trace
+okf visualize docs-okf                           # interactive HTML graph
+okf serve-mcp docs-okf                           # expose to Claude Code / Cursor via MCP
+okf list --remote  &&  okf get <name>            # discover & download published bundles
+```
 
 ## License
 

@@ -2,28 +2,14 @@
 
 from __future__ import annotations
 
-import functools
-import http.server
 import shutil
-import threading
 from pathlib import Path
 
 import pytest
 
+from serve_util import serve as _serve
+
 FIXTURE_SITE = Path(__file__).parent / "fixtures" / "site"
-
-
-class _QuietHandler(http.server.SimpleHTTPRequestHandler):
-    def log_message(self, *args, **kwargs):  # silence request logging in tests
-        pass
-
-
-def _serve(directory: Path):
-    handler = functools.partial(_QuietHandler, directory=str(directory))
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    return server, f"http://127.0.0.1:{server.server_address[1]}"
 
 
 @pytest.fixture
@@ -35,6 +21,24 @@ def fixture_site():
     finally:
         server.shutdown()
         server.server_close()
+
+
+@pytest.fixture
+def built_bundle(fixture_site, tmp_path):
+    """A ready-made bundle crawled from the fixture site."""
+    from okf_kit.crawl import build_bundle
+
+    out = tmp_path / "acme-okf"
+    build_bundle(fixture_site, output=str(out), max_pages=50)
+    return out
+
+
+@pytest.fixture
+def okf_home(tmp_path, monkeypatch):
+    """Point ~/.okf at a tmp dir so bundle store / chat history are isolated."""
+    home = tmp_path / "okfhome"
+    monkeypatch.setenv("OKF_HOME", str(home))
+    return home
 
 
 @pytest.fixture

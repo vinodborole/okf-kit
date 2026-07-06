@@ -22,7 +22,13 @@ from pathlib import Path
 from .config import STATE_DIRNAME, STATE_FILENAME
 from .model import content_hash, utcnow_iso
 from .okf import validate_bundle
-from .writer import bundle_path_for, prune_empty_dirs, write_bundle_meta, write_concept
+from .writer import (
+    bundle_path_for,
+    compute_edges,
+    prune_empty_dirs,
+    write_bundle_meta,
+    write_concept,
+)
 
 _SAFETY_MIN_PAGES = 4
 _SAFETY_RATIO = 0.5
@@ -127,6 +133,7 @@ async def run_sync(
         config=config,
         log_lines=[f"Sync: +{len(added)} added, ~{len(changed)} changed, -{len(removed)} removed."],
         last_sync=report,
+        edges=compute_edges(list(new_pages.values()), set(new_pages)),
     )
 
     for hook in post_sync:

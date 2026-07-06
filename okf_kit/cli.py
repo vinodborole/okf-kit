@@ -15,13 +15,7 @@ import sys
 
 from . import __version__
 
-_LATER = {
-    "list": "M3",
-    "get": "M3",
-    "chat": "M3",
-    "visualize": "M3",
-    "serve-mcp": "M3",
-}
+_LATER: dict[str, str] = {}
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -57,6 +51,32 @@ def _build_parser() -> argparse.ArgumentParser:
         "--force", action="store_true",
         help="Apply even if the re-crawl found under half the previous pages",
     )
+
+    listp = sub.add_parser("list", help="List local bundles (or --remote registry)")
+    listp.add_argument("--remote", action="store_true", help="List the registry catalog")
+    listp.add_argument("--registry", help="registry.yaml URL or path")
+
+    getp = sub.add_parser("get", help="Download a bundle from the registry")
+    getp.add_argument("name", help="Bundle name from the registry")
+    getp.add_argument("--registry", help="registry.yaml URL or path")
+    getp.add_argument("--yes", "-y", action="store_true", help="Skip the download confirmation")
+
+    chatp = sub.add_parser("chat", help="Chat with a bundle")
+    chatp.add_argument("bundle", help="Bundle name or directory")
+    chatp.add_argument("--provider", help="openai | ollama | openrouter | anthropic | custom")
+    chatp.add_argument("--model", help="Model name")
+    chatp.add_argument("--base-url", help="Custom OpenAI-compatible endpoint")
+    chatp.add_argument("--trace", action="store_true", help="Show the navigation trace")
+    chatp.add_argument("--resume", action="store_true", help="Resume the latest session")
+    chatp.add_argument("--history", action="store_true", help="List saved sessions and exit")
+
+    vizp = sub.add_parser("visualize", help="Export an interactive HTML graph")
+    vizp.add_argument("directory", help="Bundle directory")
+    vizp.add_argument("-o", "--output", metavar="FILE", help="HTML path (default: <bundle>/graph.html)")
+
+    mcpp = sub.add_parser("serve-mcp", help="Serve bundles over MCP (stdio)")
+    mcpp.add_argument("names", nargs="*", help="Bundle names/dirs (default: all local)")
+    mcpp.add_argument("--all", action="store_true", help="Serve all local bundles")
 
     for name, milestone in _LATER.items():
         p = sub.add_parser(name, help=f"[{milestone}] see docs")
@@ -106,6 +126,35 @@ def main(argv: list[str] | None = None) -> int:
             max_pages=args.max_pages,
             force=args.force,
         )
+    if cmd == "list":
+        from .registry import cmd_list
+
+        return cmd_list(remote=args.remote, registry=args.registry)
+    if cmd == "get":
+        from .registry import cmd_get
+
+        return cmd_get(args.name, registry=args.registry, yes=args.yes)
+    if cmd == "chat":
+        from .chat.repl import run_chat
+
+        return run_chat(
+            args.bundle,
+            provider=args.provider,
+            model=args.model,
+            base_url=args.base_url,
+            trace=args.trace,
+            resume=args.resume,
+            show_history=args.history,
+        )
+    if cmd == "visualize":
+        from .visualize import visualize
+
+        visualize(args.directory, output=args.output)
+        return 0
+    if cmd == "serve-mcp":
+        from .mcp import serve_mcp
+
+        return serve_mcp(args.names, all_=args.all)
 
     return 2
 

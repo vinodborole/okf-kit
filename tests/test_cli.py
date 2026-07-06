@@ -33,8 +33,10 @@ def test_cli_help_exits_zero():
     assert "build" in result.stdout
 
 
-def test_later_command_reports_milestone(capsys):
-    from okf_kit.cli import main
-
-    assert main(["chat", "x"]) == 2
-    assert "M3" in capsys.readouterr().err
+def test_unknown_command_errors():
+    result = subprocess.run(
+        [sys.executable, "-m", "okf_kit.cli", "frobnicate"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0  # argparse rejects unknown subcommands
