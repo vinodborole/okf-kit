@@ -33,6 +33,11 @@ def _build_parser() -> argparse.ArgumentParser:
     build.add_argument("--max-pages", type=int, default=200, help="Max pages (default: 200)")
     build.add_argument("--js", action="store_true", help="Render JavaScript (needs okf-kit[js])")
     build.add_argument("--no-robots", action="store_true", help="Ignore robots.txt")
+    build.add_argument(
+        "--enrich", action="store_true",
+        help="Add LLM descriptions + tags to frontmatter (needs okf-kit[enrich] + OPENAI_API_KEY)",
+    )
+    build.add_argument("--enrich-model", default="gpt-4o-mini", help="Model for --enrich")
     build.add_argument("-v", "--verbose", action="store_true")
 
     validate = sub.add_parser("validate", help="Check OKF v0.1 conformance")
@@ -99,7 +104,7 @@ def main(argv: list[str] | None = None) -> int:
     if cmd == "build":
         from .crawl import build_bundle
 
-        return build_bundle(
+        rc = build_bundle(
             args.url,
             output=args.output,
             max_depth=args.max_depth,
@@ -108,6 +113,14 @@ def main(argv: list[str] | None = None) -> int:
             respect_robots=not args.no_robots,
             verbose=args.verbose,
         )
+        if rc == 0 and args.enrich:
+            from .enrich import enrich_bundle
+            from .crawl import _default_output
+            from .mapper import normalize_url
+
+            target = args.output or str(_default_output(normalize_url(args.url)))
+            enrich_bundle(target, model=args.enrich_model)
+        return rc
     if cmd == "validate":
         from .okf import validate_bundle
 
