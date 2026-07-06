@@ -3,6 +3,19 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.1.5 — 2026-07-06
+
+### Fixed
+- **`okf visualize` graph now renders.** The generated `graph.html` was blank:
+  the animation `loop()` started before `hover`/`drag` were declared, so the
+  first frame threw a temporal-dead-zone `ReferenceError` and the canvas never
+  drew. Declared the interaction state before the loop.
+
+### Changed
+- Visualize tests now **execute the generated page's JavaScript** headless
+  (Node DOM/canvas stubs) so a runtime error in the graph fails the suite —
+  plus a structural guard that interaction state is declared before the loop.
+
 ## 0.1.4 — 2026-07-06
 
 ### Fixed
@@ -100,6 +113,7 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.1.5]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.5
 [0.1.4]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.4
 [0.1.3]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.3
 [0.1.2]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.2
