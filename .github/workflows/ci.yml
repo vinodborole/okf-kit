@@ -30,3 +30,25 @@ jobs:
         run: ruff check okf_kit
       - name: Tests
         run: pytest -q
+
+  clean-install:
+    # Install the built wheel into a fresh venv with NO dev/test deps, so a
+    # missing runtime dependency (like lxml-html-clean) fails here, the way it
+    # would for a real `pip install okf-kit` user.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --wheel
+      - name: Install wheel in an isolated venv and import the crawl path
+        run: |
+          python -m venv /tmp/clean
+          /tmp/clean/bin/pip install dist/*.whl
+          # Forces the trafilatura/lxml import chain a real build hits:
+          /tmp/clean/bin/python -c "import okf_kit.fetch.http, okf_kit.crawl; print('import OK')"
+          /tmp/clean/bin/okf --version

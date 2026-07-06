@@ -3,6 +3,21 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.1.4 — 2026-07-06
+
+### Fixed
+- **Clean installs work again.** `pip install okf-kit` in a fresh environment
+  failed at `import trafilatura` with `lxml.html.clean module is now a separate
+  project`, because modern `lxml` (>=5.2) split that module into the
+  `lxml-html-clean` package, which trafilatura's `justext` dependency needs.
+  It's now a direct dependency. (Environments that already had it — including
+  the maintainer's and the previous CI — masked the bug.)
+
+### Changed
+- CI adds a **clean-install job**: it installs the built wheel into an isolated
+  venv with no dev/test extras and imports the crawl path, so a missing runtime
+  dependency fails CI the way it would for a real user.
+
 ## 0.1.3 — 2026-07-06
 
 ### Added
@@ -85,6 +100,7 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.1.4]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.4
 [0.1.3]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.3
 [0.1.2]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.2
 [0.1.1]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.1
