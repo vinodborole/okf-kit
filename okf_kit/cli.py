@@ -16,7 +16,6 @@ import sys
 from . import __version__
 
 _LATER = {
-    "sync": "M2",
     "list": "M3",
     "get": "M3",
     "chat": "M3",
@@ -49,6 +48,15 @@ def _build_parser() -> argparse.ArgumentParser:
     zipc = sub.add_parser("zip", help="Package a bundle as a zip")
     zipc.add_argument("directory", help="Bundle directory")
     zipc.add_argument("-o", "--output", metavar="FILE", help="Zip path (default: <name>.zip)")
+
+    syncp = sub.add_parser("sync", help="Re-crawl and update only what changed")
+    syncp.add_argument("directory", help="Bundle directory")
+    syncp.add_argument("--max-depth", type=int, default=None, help="Override crawl depth")
+    syncp.add_argument("--max-pages", type=int, default=None, help="Override page cap")
+    syncp.add_argument(
+        "--force", action="store_true",
+        help="Apply even if the re-crawl found under half the previous pages",
+    )
 
     for name, milestone in _LATER.items():
         p = sub.add_parser(name, help=f"[{milestone}] see docs")
@@ -89,6 +97,15 @@ def main(argv: list[str] | None = None) -> int:
 
         zip_bundle(args.directory, output=args.output)
         return 0
+    if cmd == "sync":
+        from .sync import sync_bundle
+
+        return sync_bundle(
+            args.directory,
+            max_depth=args.max_depth,
+            max_pages=args.max_pages,
+            force=args.force,
+        )
 
     return 2
 

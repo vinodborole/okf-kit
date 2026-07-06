@@ -4,23 +4,25 @@ The output directory *is* the bundle:
 
     <bundle>/
         index.md                 root directory listing (reserved)
-        log.md                   generation/sync history (reserved)
+        log.md                   generation/sync history (reserved, appended)
         pages/                   one concept per page (frontmatter + body)
             index.md
             home.md
             docs/...
         .okf-kit/state.json      crawl config + per-page content hashes (sync)
+
+These are module functions (not a class) so `build` and `sync` share exactly
+the same concept-writing and metadata logic.
 """
 
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path, PurePosixPath
 
 from .config import STATE_DIRNAME, STATE_FILENAME
 from .mapper import url_to_relpath
-from .model import Page, PageRecord, utcnow_iso
+from .model import Page, PageRecord, content_hash, utcnow_iso
 from .okf import (
     dodge_reserved,
     frontmatter,
@@ -29,82 +31,84 @@ from .okf import (
 )
 
 
-class BundleWriter:
-    def __init__(self, bundle_dir):
-        self.bundle_dir = Path(bundle_dir)
-        self.pages_dir = self.bundle_dir / "pages"
-        self.pages_dir.mkdir(parents=True, exist_ok=True)
-        self.records: list[PageRecord] = []
-        self._seen: set[str] = set()
+def bundle_path_for(url: str) -> str:
+    """Bundle-relative concept path for a URL, e.g. 'pages/docs/intro.md'."""
+    rel = dodge_reserved(url_to_relpath(url).with_suffix(".md"))
+    return str(PurePosixPath("pages") / rel)
 
-    def write_page(self, page: Page, timestamp: str) -> PageRecord | None:
-        body = page.markdown.strip()
-        if not body:
-            return None
 
-        rel = dodge_reserved(url_to_relpath(page.url).with_suffix(".md"))
-        bundle_rel = PurePosixPath("pages") / rel
-        key = str(bundle_rel)
-        if key in self._seen:  # e.g. / and /index.html both map to pages/home.md
-            return None
-        self._seen.add(key)
-
-        fm = frontmatter(
-            {
-                "type": "Web Page",
-                "title": page.title,
-                "description": page.description,
-                "resource": page.url,
-                "timestamp": timestamp,
-            }
-        )
-        content = f"{fm}\n{body}\n\n# Citations\n\n1. Source page: {page.url}\n"
-
-        dest = self.bundle_dir / bundle_rel
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(content, encoding="utf8")
-
-        record = PageRecord(
-            path=key,
-            url=page.url,
-            title=page.title,
-            content_hash=hashlib.sha256(page.markdown.encode("utf8")).hexdigest(),
-        )
-        self.records.append(record)
-        return record
-
-    def finalize(self, *, root_url: str, config: dict) -> None:
-        entries = {
-            PurePosixPath(r.path): (r.title or PurePosixPath(r.path).stem)
-            for r in self.records
+def write_concept(bundle_dir: Path, page: Page, timestamp: str) -> PageRecord | None:
+    """Write one page as an OKF concept file; returns its record (or None if
+    the page has no body)."""
+    body = page.markdown.strip()
+    if not body:
+        return None
+    path = bundle_path_for(page.url)
+    fm = frontmatter(
+        {
+            "type": "Web Page",
+            "title": page.title,
+            "description": page.description,
+            "resource": page.url,
+            "timestamp": timestamp,
         }
-        write_directory_indexes(self.bundle_dir, entries)
-        write_root_index(self.bundle_dir, root_url, len(self.records))
+    )
+    content = f"{fm}\n{body}\n\n# Citations\n\n1. Source page: {page.url}\n"
+    dest = Path(bundle_dir) / path
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(content, encoding="utf8")
+    return PageRecord(path=path, url=page.url, title=page.title,
+                      content_hash=content_hash(page.markdown))
 
-        (self.bundle_dir / "log.md").write_text(
-            f"# Log\n\n## {utcnow_iso()[:10]}\n\n"
-            f"- Built by okf-kit from {root_url}: {len(self.records)} pages.\n",
-            encoding="utf8",
-        )
 
-        state_dir = self.bundle_dir / STATE_DIRNAME
-        state_dir.mkdir(exist_ok=True)
-        (state_dir / STATE_FILENAME).write_text(
-            json.dumps(
-                {
-                    "generator": "okf-kit",
-                    "okf_version": "0.1",
-                    "root_url": root_url,
-                    "built_at": utcnow_iso(),
-                    "config": config,
-                    "page_count": len(self.records),
-                    "pages": [
-                        {"path": r.path, "url": r.url, "title": r.title, "hash": r.content_hash}
-                        for r in sorted(self.records, key=lambda r: r.path)
-                    ],
-                },
-                indent=2,
-                ensure_ascii=False,
-            ),
-            encoding="utf8",
-        )
+def prune_empty_dirs(root: Path) -> None:
+    for d in sorted((p for p in root.rglob("*") if p.is_dir()), reverse=True):
+        if not any(d.iterdir()):
+            d.rmdir()
+
+
+def append_log(bundle_dir: Path, lines: list[str]) -> None:
+    log = Path(bundle_dir) / "log.md"
+    existing = log.read_text(encoding="utf8") if log.exists() else "# Log\n"
+    section = f"\n## {utcnow_iso()[:10]}\n\n" + "".join(f"- {line}\n" for line in lines)
+    log.write_text(existing.rstrip() + "\n" + section, encoding="utf8")
+
+
+def write_bundle_meta(
+    bundle_dir: Path,
+    records: list[PageRecord],
+    *,
+    root_url: str,
+    config: dict,
+    log_lines: list[str],
+    last_sync: dict | None = None,
+) -> None:
+    """Directory indexes + root index + log + state.json for the full set of
+    current pages."""
+    bundle_dir = Path(bundle_dir)
+    entries = {
+        PurePosixPath(r.path): (r.title or PurePosixPath(r.path).stem) for r in records
+    }
+    write_directory_indexes(bundle_dir, entries)
+    write_root_index(bundle_dir, root_url, len(records))
+    append_log(bundle_dir, log_lines)
+
+    state_dir = bundle_dir / STATE_DIRNAME
+    state_dir.mkdir(exist_ok=True)
+    state = {
+        "generator": "okf-kit",
+        "okf_version": "0.1",
+        "root_url": root_url,
+        "updated_at": utcnow_iso(),
+        "config": config,
+        "page_count": len(records),
+        "pages": [
+            {"path": r.path, "url": r.url, "title": r.title, "hash": r.content_hash}
+            for r in sorted(records, key=lambda r: r.path)
+        ],
+    }
+    if last_sync is not None:
+        state["last_sync"] = last_sync
+    (state_dir / STATE_FILENAME).write_text(
+        json.dumps(state, indent=2, ensure_ascii=False), encoding="utf8"
+    )

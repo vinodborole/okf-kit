@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+import hashlib
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 _PILCROW = re.compile(r"\s*¶")
 _EXTRA_BLANKS = re.compile(r"\n{3,}")
+
+
+def content_hash(markdown: str) -> str:
+    """Stable hash of a page's crawled markdown — the unit sync diffs on.
+    Independent of frontmatter (timestamps), so unchanged content stays
+    unchanged across rebuilds."""
+    return hashlib.sha256(markdown.encode("utf8")).hexdigest()
 
 
 def clean_markdown(md: str) -> str:
