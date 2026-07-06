@@ -1,9 +1,11 @@
-"""M0 smoke tests: the package imports and the CLI skeleton runs."""
+"""CLI smoke tests."""
 
 from __future__ import annotations
 
 import subprocess
 import sys
+
+import pytest
 
 import okf_kit
 
@@ -15,7 +17,7 @@ def test_version_constant():
 def test_cli_version(capsys):
     from okf_kit.cli import main
 
-    with __import__("pytest").raises(SystemExit) as exc:
+    with pytest.raises(SystemExit) as exc:
         main(["--version"])
     assert exc.value.code == 0
     assert okf_kit.__version__ in capsys.readouterr().out
@@ -31,8 +33,8 @@ def test_cli_help_exits_zero():
     assert "build" in result.stdout
 
 
-def test_unimplemented_command_reports_milestone(capsys):
+def test_later_command_reports_milestone(capsys):
     from okf_kit.cli import main
 
-    assert main(["build", "https://example.com"]) == 2
-    assert "M1" in capsys.readouterr().err
+    assert main(["sync", "somedir"]) == 2
+    assert "M2" in capsys.readouterr().err
