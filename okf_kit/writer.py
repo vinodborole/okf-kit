@@ -61,6 +61,19 @@ def write_concept(bundle_dir: Path, page: Page, timestamp: str) -> PageRecord | 
                       content_hash=content_hash(page.markdown))
 
 
+def compute_edges(pages, present_paths: set[str]) -> list[list[str]]:
+    """Internal link edges between concepts, as [src_path, dst_path] pairs —
+    the graph `okf visualize` renders."""
+    edges: set[tuple[str, str]] = set()
+    for page in pages:
+        src = bundle_path_for(page.url)
+        for link in page.links:
+            dst = bundle_path_for(link)
+            if dst in present_paths and dst != src:
+                edges.add((src, dst))
+    return [list(e) for e in sorted(edges)]
+
+
 def prune_empty_dirs(root: Path) -> None:
     for d in sorted((p for p in root.rglob("*") if p.is_dir()), reverse=True):
         if not any(d.iterdir()):
@@ -82,6 +95,7 @@ def write_bundle_meta(
     config: dict,
     log_lines: list[str],
     last_sync: dict | None = None,
+    edges: list[list[str]] | None = None,
 ) -> None:
     """Directory indexes + root index + log + state.json for the full set of
     current pages."""
@@ -106,6 +120,7 @@ def write_bundle_meta(
             {"path": r.path, "url": r.url, "title": r.title, "hash": r.content_hash}
             for r in sorted(records, key=lambda r: r.path)
         ],
+        "edges": edges or [],
     }
     if last_sync is not None:
         state["last_sync"] = last_sync

@@ -115,7 +115,8 @@ def validate_bundle(directory, *, quiet: bool = False) -> bool:
 def zip_bundle(directory, *, output=None) -> Path:
     """Package the bundle under a single top-level folder for hand-off.
 
-    Excludes the internal state dir — the shipped artifact is pure OKF.
+    Includes the small `.okf-kit/state.json` so a recipient can list and sync
+    the bundle; OKF consumers ignore non-`.md` files, so it stays spec-clean.
     """
     bundle_dir = Path(directory)
     if not (bundle_dir / "index.md").exists():
@@ -124,7 +125,7 @@ def zip_bundle(directory, *, output=None) -> Path:
     zip_path = Path(output) if output else bundle_dir.parent / f"{root}.zip"
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for f in sorted(bundle_dir.rglob("*")):
-            if f.is_file() and STATE_DIRNAME not in f.relative_to(bundle_dir).parts:
+            if f.is_file():
                 zf.write(f, str(PurePosixPath(root) / f.relative_to(bundle_dir)))
     size_mb = zip_path.stat().st_size / 1024 / 1024
     print(f"Wrote {zip_path} ({size_mb:.1f} MB)")
