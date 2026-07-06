@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import re
 import urllib.robotparser
 from urllib.parse import urljoin, urlparse
 
@@ -84,7 +85,9 @@ class HttpFetcher:
             if not markdown or not markdown.strip():
                 markdown = self._fallback(html, title)
             markdown = clean_markdown(markdown or "")
-            if not markdown:
+            # Keep a content-less page only if it has links to follow (e.g. a
+            # redirect/nav stub) — the crawler uses the links but won't write it.
+            if not markdown and not links:
                 return None
             return Page(
                 url=final_url,
@@ -144,6 +147,19 @@ class HttpFetcher:
             if norm not in seen:
                 seen.add(norm)
                 links.append(norm)
+
+        # A client-side meta-refresh redirect (common on section roots like
+        # /docs/ that bounce to a first page) has no <a> — follow its target.
+        for m in tree.css("meta"):
+            if (m.attributes.get("http-equiv") or "").lower() != "refresh":
+                continue
+            hit = re.search(r"url\s*=\s*(.+)", m.attributes.get("content") or "", re.I)
+            if hit:
+                target = normalize_url(urljoin(base_url, hit.group(1).strip().strip("'\"")))
+                if urlparse(target).scheme in ("http", "https") and target not in seen:
+                    seen.add(target)
+                    links.insert(0, target)
+            break
         return title, description, links
 
     @staticmethod
