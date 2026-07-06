@@ -124,7 +124,8 @@ def _extract_zip(buf, dest: Path) -> None:
 
 
 def resolve_bundle(name_or_dir: str) -> Path:
-    """A bundle argument may be a local directory or a downloaded bundle name."""
+    """A bundle argument that must be a *valid* bundle: a local directory or a
+    downloaded bundle name. Raises if neither. Used by chat / serve-mcp."""
     p = Path(name_or_dir)
     if (p / "index.md").exists():
         return p
@@ -135,3 +136,17 @@ def resolve_bundle(name_or_dir: str) -> Path:
         f"'{name_or_dir}' is neither an OKF bundle directory nor a downloaded bundle. "
         f"Use `okf get {name_or_dir}` or pass a path."
     )
+
+
+def bundle_dir_arg(name_or_dir: str) -> Path:
+    """Resolve a command's bundle argument leniently: an existing local path is
+    used as-is, otherwise a downloaded bundle name maps to ~/.okf/bundles/<name>.
+    Doesn't require a valid bundle — the command reports that itself. Used by
+    validate / zip / sync / visualize so they accept names like chat does."""
+    p = Path(name_or_dir)
+    if p.exists():
+        return p
+    stored = bundles_dir() / name_or_dir
+    if stored.exists():
+        return stored
+    return p

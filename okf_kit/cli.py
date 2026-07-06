@@ -123,18 +123,21 @@ def main(argv: list[str] | None = None) -> int:
         return rc
     if cmd == "validate":
         from .okf import validate_bundle
+        from .registry import bundle_dir_arg
 
-        return 0 if validate_bundle(args.directory, quiet=args.quiet) else 3
+        return 0 if validate_bundle(bundle_dir_arg(args.directory), quiet=args.quiet) else 3
     if cmd == "zip":
         from .okf import zip_bundle
+        from .registry import bundle_dir_arg
 
-        zip_bundle(args.directory, output=args.output)
+        zip_bundle(bundle_dir_arg(args.directory), output=args.output)
         return 0
     if cmd == "sync":
+        from .registry import bundle_dir_arg
         from .sync import sync_bundle
 
         return sync_bundle(
-            args.directory,
+            str(bundle_dir_arg(args.directory)),
             max_depth=args.max_depth,
             max_pages=args.max_pages,
             force=args.force,
@@ -160,9 +163,10 @@ def main(argv: list[str] | None = None) -> int:
             show_history=args.history,
         )
     if cmd == "visualize":
+        from .registry import bundle_dir_arg
         from .visualize import visualize
 
-        visualize(args.directory, output=args.output)
+        visualize(bundle_dir_arg(args.directory), output=args.output)
         return 0
     if cmd == "serve-mcp":
         from .mcp import serve_mcp
