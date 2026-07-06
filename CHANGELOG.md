@@ -3,6 +3,17 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.1.7 — 2026-07-06
+
+### Fixed
+- **Redirect/nav stubs no longer dead-end a crawl.** Seeding a URL that's a
+  content-less `<meta http-equiv="refresh">` stub (e.g. `https://backstage.io/docs/`,
+  which bounces to a first page) previously yielded `No pages could be crawled`.
+  okf-kit now follows meta-refresh targets and extracts a page's links even
+  when the page itself has no body text — so the crawl reaches the real
+  content, scoped to the seed's section. Empty stubs are still never written
+  as concepts.
+
 ## 0.1.6 — 2026-07-06
 
 ### Fixed
@@ -124,6 +135,7 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.1.7]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.7
 [0.1.6]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.6
 [0.1.5]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.5
 [0.1.4]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.4

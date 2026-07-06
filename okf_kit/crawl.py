@@ -104,16 +104,8 @@ async def crawl_site(
             # Auto-scope: the first fetched page (the seed, post-redirect) sets it.
             if prefix is None:
                 prefix = scope_prefix_for(page.url)
-            path = bundle_path_for(page.url)
-            if path in seen_paths or not page.markdown.strip():
-                continue
-            if len(pages) >= max_pages:
-                break
-            seen_paths.add(path)
-            page.depth = depth
-            pages.append(page)
-            if on_page:
-                on_page(page, path)
+            # Follow in-scope links even from a content-less page (a redirect or
+            # nav stub still points at real pages).
             if depth < max_depth:
                 for link in page.links:
                     norm = normalize_url(link)
@@ -125,6 +117,17 @@ async def crawl_site(
                     ):
                         seen_urls.add(norm)
                         next_level.append(norm)
+            # Write the page as a concept only if it has content and is new.
+            path = bundle_path_for(page.url)
+            if path in seen_paths or not page.markdown.strip():
+                continue
+            if len(pages) >= max_pages:
+                break
+            seen_paths.add(path)
+            page.depth = depth
+            pages.append(page)
+            if on_page:
+                on_page(page, path)
         current = next_level
         depth += 1
 
