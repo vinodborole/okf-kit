@@ -14,6 +14,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
+import httpx
+
 # Preset endpoints for OpenAI-compatible servers.
 _PRESETS = {
     "openai": {"base_url": None, "key_env": "OPENAI_API_KEY", "default_model": "gpt-4o-mini"},
@@ -127,12 +129,52 @@ def make_provider(provider: str | None, model: str | None, base_url: str | None)
         url = base_url or preset.get("base_url")
         key_env = preset.get("key_env")
         key = os.environ.get(key_env) if key_env else None
+        model = model or preset.get("default_model", "gpt-4o-mini")
         if provider == "ollama":
             key = key or "ollama"  # Ollama ignores the key but the SDK requires one
+            if not base_url:  # user didn't force a model — use one Ollama actually has
+                model = _detect_ollama_model(url, model)
         if not key:
             return None
-        return OpenAICompatProvider(model or preset.get("default_model", "gpt-4o-mini"), url, key)
+        return OpenAICompatProvider(model, url, key)
     raise SystemExit(f"Unknown provider '{provider}'. Use openai/ollama/openrouter/anthropic/custom.")
+
+
+def _detect_ollama_model(base_url: str, fallback: str) -> str:
+    """Pick a model Ollama actually has installed; fall back to the preset."""
+    try:
+        tags_url = base_url.rsplit("/v1", 1)[0] + "/api/tags"
+        models = httpx.get(tags_url, timeout=2.0).json().get("models", [])
+        names = [m.get("name", "") for m in models if m.get("name")]
+        # Prefer the preset default if it's present, else the first installed model.
+        if fallback in names or any(n.split(":")[0] == fallback for n in names):
+            return fallback
+        return names[0] if names else fallback
+    except Exception:  # noqa: BLE001 — Ollama not running/reachable; error surfaces on use
+        return fallback
+
+
+def describe_provider_error(exc: Exception, provider: str | None, model: str | None) -> str:
+    """Turn a raw provider/SDK exception into an actionable one-liner."""
+    name = type(exc).__name__
+    low = str(exc).lower()
+    is_ollama = provider == "ollama"
+
+    if "NotFound" in name or "not found" in low or "does not exist" in low or "404" in low:
+        if is_ollama:
+            return (
+                f"Ollama doesn't have the model '{model}'. Install it:\n"
+                f"    ollama pull {model}\n"
+                f"or pick one you have:  ollama list  →  --model <name>"
+            )
+        return f"Model '{model}' not found for provider '{provider}' — check --model."
+    if "Conn" in name or "connect" in low or "refused" in low:
+        if is_ollama:
+            return "Can't reach Ollama at localhost:11434 — is it running?  Start it:  ollama serve"
+        return f"Can't reach the '{provider}' endpoint — check your network or --base-url."
+    if "Auth" in name or "401" in low or "api key" in low or "unauthorized" in low:
+        return f"Authentication failed for '{provider}' — check the API key environment variable."
+    return f"{provider or 'provider'} error: {exc}"
 
 
 def _loads(s):

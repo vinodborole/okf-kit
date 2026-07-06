@@ -8,6 +8,7 @@ BrowserFetcher (okf-kit[js]). Respects robots.txt by default.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import urllib.robotparser
 from urllib.parse import urljoin, urlparse
 
@@ -21,6 +22,24 @@ from ..model import Page, clean_markdown
 
 _USER_AGENT = f"okf-kit/{__version__} (+https://github.com/vinodborole/okf-kit)"
 _SKIP_TAGS = ("script", "style", "noscript", "svg", "nav", "footer", "header")
+
+# Disable trafilatura's fallback pass (it duplicates small pages). The arg is
+# `fast` in trafilatura 2.x and `no_fallback` in 1.x — pick whichever this
+# install has, so core works with the older 1.x that the [js] extra
+# (crawl4ai, lxml~=5.3) needs.
+_NO_FALLBACK_KW = (
+    "fast" if "fast" in inspect.signature(trafilatura.extract).parameters else "no_fallback"
+)
+
+
+def _extract_markdown(html: str) -> str | None:
+    return trafilatura.extract(
+        html,
+        output_format="markdown",
+        include_tables=True,
+        include_formatting=True,
+        **{_NO_FALLBACK_KW: True},
+    )
 
 
 class HttpFetcher:
@@ -60,13 +79,7 @@ class HttpFetcher:
 
             html = resp.text
             final_url = normalize_url(str(resp.url))
-            markdown = trafilatura.extract(
-                html,
-                output_format="markdown",
-                include_tables=True,
-                include_formatting=True,
-                fast=True,  # disable the fallback pass that duplicates small pages
-            )
+            markdown = _extract_markdown(html)
             title, description, links = self._parse(html, str(resp.url))
             if not markdown or not markdown.strip():
                 markdown = self._fallback(html, title)

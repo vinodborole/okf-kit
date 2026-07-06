@@ -1,6 +1,6 @@
 [project]
 name = "okf-kit"
-version = "0.1.0"
+version = "0.1.1"
 description = "Turn any website into a portable, agent-ready Open Knowledge Format (OKF) bundle — build, sync, and chat, no LLM required to start."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -21,8 +21,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# JS-rendered sites (heavy: pulls a Playwright Chromium).
-js = ["crawl4ai>=0.6.0"]
+# JS-rendered sites (heavy: pulls a Playwright Chromium). Constrain trafilatura
+# to a build whose lxml requirement is compatible with crawl4ai's (lxml~=5.3);
+# only applies when the [js] extra is installed, so plain installs get latest.
+js = ["crawl4ai>=0.6.0", "trafilatura>=1.8,<2.1"]
 # Chat against any OpenAI-compatible endpoint (OpenAI, Ollama, vLLM, …).
 chat = ["openai>=1.60"]
 # Claude as a chat provider.
