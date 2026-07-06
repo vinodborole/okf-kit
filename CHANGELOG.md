@@ -3,6 +3,24 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.1.1 — 2026-07-06
+
+### Fixed
+- **`[js]` extra now resolves** ([#6](https://github.com/vinodborole/okf-kit/issues/6)):
+  the extra constrains `trafilatura` to a build whose `lxml` requirement is
+  compatible with `crawl4ai` (`lxml~=5.3`), so `pip install "okf-kit[js]"`
+  installs cleanly. Plain installs still get the latest `trafilatura`.
+- **Markdown extraction is version-agnostic** — works with `trafilatura` 1.x
+  (`no_fallback`) and 2.x (`fast`), detected at import.
+
+### Changed
+- **Friendly chat errors.** A provider failure (e.g. Ollama missing the model,
+  endpoint unreachable, bad key) now prints an actionable one-line message
+  instead of a raw traceback, and the REPL keeps running.
+- **Ollama model auto-detection.** With `--provider ollama` and no `--model`,
+  okf-kit queries Ollama for an installed model instead of assuming
+  `llama3.1`; the resolved model is shown in the chat header.
+
 ## 0.1.0 — 2026-07-06
 
 First release — turn any website into a portable, agent-ready
@@ -49,4 +67,5 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.1.1]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.1
 [0.1.0]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.0

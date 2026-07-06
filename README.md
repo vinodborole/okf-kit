@@ -59,15 +59,9 @@ The default install has **no browser and no LLM SDK** — it installs in seconds
 > ```bash
 > python3 -m venv ~/okf && ~/okf/bin/pip install okf-kit
 > ```
-
-### Known limitations
-
-- **`[js]` extra dependency conflict** ([#6](https://github.com/vinodborole/okf-kit/issues/6)):
-  `pip install "okf-kit[js]"` currently fails to resolve because core's
-  `trafilatura` (2.x) requires `lxml>=6.1.1` while `crawl4ai` pins
-  `lxml~=5.3`. Until this is fixed in 0.1.1, install the `[js]` extra in its
-  **own** environment, separate from anything that pins an older `lxml`. Core
-  okf-kit (the default install, no browser) is unaffected.
+> This also avoids clashes if an existing environment already pins packages
+> like `lxml` (e.g. a prior `crawl4ai` install) — a plain install would
+> otherwise bump them.
 
 ## Commands
 

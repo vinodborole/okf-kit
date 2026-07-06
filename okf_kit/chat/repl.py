@@ -7,7 +7,7 @@ from pathlib import Path
 from ..registry import resolve_bundle
 from . import agent, retrieval
 from .history import History
-from .providers import make_provider
+from .providers import describe_provider_error, make_provider
 
 
 def run_chat(
@@ -40,7 +40,8 @@ def run_chat(
         print("No LLM provider configured — retrieval-only mode.")
         print("For a synthesized answer:  --provider ollama  (offline)  or  --provider openai\n")
     else:
-        print(f"Chatting with '{bundle_name}' via {provider or 'default'} — Ctrl-D to exit.\n")
+        used_model = getattr(prov, "model", model)
+        print(f"Chatting with '{bundle_name}' via {provider} ({used_model}) — Ctrl-D to exit.\n")
 
     while True:
         try:
@@ -52,9 +53,13 @@ def run_chat(
             continue
 
         history.append("user", question)
-        result = retrieval.answer(bundle_dir, question) if prov is None else agent.ask(
-            bundle_dir, question, prov
-        )
+        try:
+            result = retrieval.answer(bundle_dir, question) if prov is None else agent.ask(
+                bundle_dir, question, prov
+            )
+        except Exception as exc:  # noqa: BLE001 — a provider error shouldn't crash the REPL
+            print("\n" + describe_provider_error(exc, provider, getattr(prov, "model", model)) + "\n")
+            continue
         print(f"\n{result['answer']}\n")
         if trace and result["steps"]:
             print("  trace: " + " → ".join(f"{s['tool']} {s['path']}" for s in result["steps"]))
