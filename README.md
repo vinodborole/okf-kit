@@ -157,7 +157,8 @@ docs-okf/
 ## Development
 
 `pip install -e ".[dev]"`, then `pytest -q` (37 tests, fully offline) and
-`ruff check okf_kit tests`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+`ruff check okf_kit tests`. See [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[CHANGELOG](CHANGELOG.md).
 
 ## License
 
