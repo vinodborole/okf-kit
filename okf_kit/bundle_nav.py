@@ -47,8 +47,8 @@ def read_concept(bundle_dir, path: str) -> str:
     return target.read_text(encoding="utf8")[:MAX_FILE_CHARS]
 
 
-def _concept_files(bundle_dir: Path):
-    for md in (bundle_dir / "pages").rglob("*.md"):
+def _concept_files(bundle_dir):
+    for md in (Path(bundle_dir) / "pages").rglob("*.md"):
         if md.name not in RESERVED:
             yield md
 
