@@ -1,8 +1,8 @@
 """Command-line interface for okf-kit.
 
-    okf build <url>       crawl a site into an OKF bundle          (M1)
-    okf validate <dir>    OKF v0.1 conformance check               (M1)
-    okf zip <dir>         package a bundle for hand-off            (M1)
+    okf build <url>       crawl a site into an OKF bundle
+    okf validate <dir>    OKF v0.1 conformance check
+    okf zip <dir>         package a bundle for hand-off
     okf sync <dir>        incrementally update a bundle            (M2)
     okf list / get        registry                                 (M3)
     okf chat / visualize / serve-mcp   consume a bundle            (M3)
@@ -15,11 +15,7 @@ import sys
 
 from . import __version__
 
-# Milestone each command lands in; used until the handler is wired up.
-_MILESTONE = {
-    "build": "M1",
-    "validate": "M1",
-    "zip": "M1",
+_LATER = {
     "sync": "M2",
     "list": "M3",
     "get": "M3",
@@ -36,19 +32,64 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = parser.add_subparsers(dest="command", required=True, metavar="<command>")
-    for name, milestone in _MILESTONE.items():
+
+    build = sub.add_parser("build", help="Crawl a site into an OKF bundle")
+    build.add_argument("url", help="Root URL, e.g. https://docs.example.com")
+    build.add_argument("-o", "--output", metavar="DIR", help="Bundle directory (default: ./<host>-okf)")
+    build.add_argument("--max-depth", type=int, default=3, help="Max crawl depth (default: 3)")
+    build.add_argument("--max-pages", type=int, default=200, help="Max pages (default: 200)")
+    build.add_argument("--js", action="store_true", help="Render JavaScript (needs okf-kit[js])")
+    build.add_argument("--no-robots", action="store_true", help="Ignore robots.txt")
+    build.add_argument("-v", "--verbose", action="store_true")
+
+    validate = sub.add_parser("validate", help="Check OKF v0.1 conformance")
+    validate.add_argument("directory", help="Bundle directory")
+    validate.add_argument("--quiet", action="store_true", help="No output; exit code only")
+
+    zipc = sub.add_parser("zip", help="Package a bundle as a zip")
+    zipc.add_argument("directory", help="Bundle directory")
+    zipc.add_argument("-o", "--output", metavar="FILE", help="Zip path (default: <name>.zip)")
+
+    for name, milestone in _LATER.items():
         p = sub.add_parser(name, help=f"[{milestone}] see docs")
         p.add_argument("args", nargs=argparse.REMAINDER, help=argparse.SUPPRESS)
+
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
-    print(
-        f"`okf {args.command}` lands in milestone {_MILESTONE[args.command]} "
-        f"and isn't implemented yet.",
-        file=sys.stderr,
-    )
+    cmd = args.command
+
+    if cmd in _LATER:
+        print(
+            f"`okf {cmd}` lands in milestone {_LATER[cmd]} and isn't wired up yet.",
+            file=sys.stderr,
+        )
+        return 2
+
+    if cmd == "build":
+        from .crawl import build_bundle
+
+        return build_bundle(
+            args.url,
+            output=args.output,
+            max_depth=args.max_depth,
+            max_pages=args.max_pages,
+            js=args.js,
+            respect_robots=not args.no_robots,
+            verbose=args.verbose,
+        )
+    if cmd == "validate":
+        from .okf import validate_bundle
+
+        return 0 if validate_bundle(args.directory, quiet=args.quiet) else 3
+    if cmd == "zip":
+        from .okf import zip_bundle
+
+        zip_bundle(args.directory, output=args.output)
+        return 0
+
     return 2
 
 
