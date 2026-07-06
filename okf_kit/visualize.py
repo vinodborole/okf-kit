@@ -101,22 +101,29 @@ function dim(n){return filter && !(n.title.toLowerCase().includes(filter)||n.pat
 // interaction state — declared before the loop starts (tick/draw read them)
 let hover=null,drag=null;
 
-// force sim
+// force sim with simulated-annealing cooling: `alpha` decays toward 0 so the
+// layout settles and then freezes, instead of jittering forever. Dragging
+// briefly reheats it so the graph re-arranges, then re-cools.
+let alpha=1;
+const ALPHA_MIN=0.005, COOL=0.98, VDECAY=0.6, REPULSE_CAP=30;
 function tick(){
+  if(alpha<ALPHA_MIN && !drag) return;            // settled → stop computing/moving
+  alpha = drag ? Math.max(alpha,0.3) : alpha*COOL;
+  const A=alpha;
   for(let i=0;i<nodes.length;i++){
     const a=nodes[i];
     for(let j=i+1;j<nodes.length;j++){
       const b=nodes[j];let dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy+.01;
-      const f=1400/d2;const d=Math.sqrt(d2);
+      const d=Math.sqrt(d2);const f=Math.min(1400/d2,REPULSE_CAP)*A;  // cap → no blow-ups
       a.vx+=f*dx/d;a.vy+=f*dy/d;b.vx-=f*dx/d;b.vy-=f*dy/d;
     }
-    a.vx+=(W/2-a.x)*0.001;a.vy+=(H/2-a.y)*0.001;
+    a.vx+=(W/2-a.x)*0.003*A;a.vy+=(H/2-a.y)*0.003*A;
   }
   links.forEach(l=>{
-    let dx=l.t.x-l.s.x,dy=l.t.y-l.s.y,d=Math.sqrt(dx*dx+dy*dy)||1;const f=(d-90)*0.01;
+    let dx=l.t.x-l.s.x,dy=l.t.y-l.s.y,d=Math.sqrt(dx*dx+dy*dy)||1;const f=(d-90)*0.02*A;
     l.s.vx+=f*dx/d;l.s.vy+=f*dy/d;l.t.vx-=f*dx/d;l.t.vy-=f*dy/d;
   });
-  nodes.forEach(n=>{if(n===drag)return;n.x+=n.vx*=.85;n.y+=n.vy*=.85;});
+  nodes.forEach(n=>{if(n===drag)return;n.vx*=VDECAY;n.vy*=VDECAY;n.x+=n.vx;n.y+=n.vy;});
 }
 function draw(){
   ctx.clearRect(0,0,W,H);

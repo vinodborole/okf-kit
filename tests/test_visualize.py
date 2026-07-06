@@ -41,6 +41,15 @@ def test_interaction_state_declared_before_loop():
     assert _HTML.index("let hover=null,drag=null;") < _HTML.index("loop();")
 
 
+def test_layout_cools_and_freezes():
+    """The force sim must anneal: `alpha` decays and the tick early-returns when
+    settled, or the graph jitters forever ("out of control"). Structural guard —
+    the physics is verified numerically in the standalone check."""
+    assert "let alpha=1;" in _HTML
+    assert "alpha*COOL" in _HTML          # cooling each frame
+    assert "if(alpha<ALPHA_MIN && !drag) return;" in _HTML  # freeze when settled
+
+
 # Node stubs for document/canvas/raf so the embedded script can run headless.
 _RENDER_HARNESS = textwrap.dedent(r"""
     const fs=require('fs'), vm=require('vm');
