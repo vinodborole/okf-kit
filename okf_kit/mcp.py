@@ -8,6 +8,7 @@ chat agent uses.
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 from .bundle_nav import list_directory, read_concept, search_bundle
@@ -74,7 +75,12 @@ def serve_mcp(names: list[str], *, all_: bool = False) -> int:
 
     import asyncio
 
-    print(f"okf serve-mcp: serving {len(bundles)} bundle(s): {', '.join(bundles)}", flush=True)
+    # stdout is the JSON-RPC channel in a stdio MCP server — log to stderr only.
+    print(
+        f"okf serve-mcp: serving {len(bundles)} bundle(s): {', '.join(bundles)}",
+        file=sys.stderr,
+        flush=True,
+    )
     asyncio.run(_run())
     return 0
 

@@ -3,6 +3,17 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.1.6 — 2026-07-06
+
+### Fixed
+- **`okf serve-mcp` no longer corrupts the MCP stream.** The startup banner was
+  printed to stdout, which is the JSON-RPC channel in a stdio MCP server, so
+  clients logged `Failed to parse JSONRPC message`. The banner now goes to
+  stderr; stdout carries only protocol messages.
+
+### Changed
+- Added a test that spawns the server and asserts the banner stays off stdout.
+
 ## 0.1.5 — 2026-07-06
 
 ### Fixed
@@ -113,6 +124,7 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.1.6]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.6
 [0.1.5]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.5
 [0.1.4]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.4
 [0.1.3]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.3
