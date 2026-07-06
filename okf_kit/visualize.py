@@ -98,6 +98,9 @@ let filter='';
 document.getElementById('q').addEventListener('input',e=>{filter=e.target.value.toLowerCase();});
 function dim(n){return filter && !(n.title.toLowerCase().includes(filter)||n.path.toLowerCase().includes(filter));}
 
+// interaction state — declared before the loop starts (tick/draw read them)
+let hover=null,drag=null;
+
 // force sim
 function tick(){
   for(let i=0;i<nodes.length;i++){
@@ -130,7 +133,6 @@ function draw(){
 }
 function loop(){tick();draw();requestAnimationFrame(loop);}loop();
 
-let hover=null,drag=null;
 canvas.addEventListener('mousemove',e=>{
   const m=nearest(e.clientX,e.clientY);hover=m;
   if(m){tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY+14)+'px';
