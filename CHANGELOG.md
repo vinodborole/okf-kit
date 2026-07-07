@@ -3,7 +3,7 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## 0.2.0 — unreleased
+## 0.2.0 — 2026-07-07
 
 ### Changed
 - **`okf visualize` is now a readable explorer that works on *any* OKF bundle.**
@@ -168,6 +168,7 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.2.0]: https://github.com/vinodborole/okf-kit/releases/tag/v0.2.0
 [0.1.8]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.8
 [0.1.7]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.7
 [0.1.6]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.6
