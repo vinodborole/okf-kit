@@ -141,6 +141,14 @@ okf serve-mcp docs-okf          # or --all for every downloaded bundle
 Exposes `list_bundles` / `list_directory` / `read_concept` / `search_bundle` over
 stdio MCP for Claude Code/Desktop, Cursor, and any MCP client.
 
+**Or run it as a container** (the included `Dockerfile` bakes in the `rust-book`
+bundle):
+
+```bash
+docker build -t okf-kit-mcp .
+docker run -i --rm okf-kit-mcp   # speaks MCP over stdio; serve another bundle: … okf-kit-mcp okf serve-mcp <name>
+```
+
 ### Registry
 
 ```bash
