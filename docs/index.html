@@ -410,7 +410,7 @@ function card(b){
   </div>`;
 }
 const grid=document.getElementById('bundlegrid'), fbar=document.getElementById('bundlefilters');
-const CATORDER=["AI & Agents","Web & Frameworks","Libraries & Tools","Platforms & DevOps","Languages & Learning","Other"];
+const CATORDER=["AI & Agents","Web & Frameworks","Data & ML","Libraries & Tools","Platforms & DevOps","Languages & Learning","Other"];
 const addTile=`<a class="bundle" href="https://github.com/vinodborole/awesome-okf-kit/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener" style="text-decoration:none;justify-content:center;align-items:center;text-align:center;border-style:dashed">
   <div><h3 style="color:var(--brass)">+ Add your book</h3><p style="text-align:center">Publish a bundle and open a PR — it appears here automatically.</p></div></a>`;
 fetch(REG,{cache:'no-cache'}).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{
