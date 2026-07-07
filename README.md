@@ -8,6 +8,8 @@
 
 **Turn any website into a portable, agent-ready knowledge bundle — no LLM required to start.**
 
+<p align="center"><img src="docs/assets/demo.svg" alt="okf-kit: build a docs site into an OKF bundle, chat with it, and serve it to a coding agent — no API key" width="760"></p>
+
 `okf-kit` crawls a site into a
 [Google Open Knowledge Format (OKF)](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
 bundle: a directory of markdown concept files with YAML frontmatter and
