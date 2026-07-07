@@ -3,6 +3,28 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.2.0 — 2026-07-07
+
+### Changed
+- **`okf visualize` is now a readable explorer that works on *any* OKF bundle.**
+  Replaced the force-directed graph (a hairball on densely-linked docs) with a
+  collapsible **tree explorer** of the bundle's concepts, plus a detail pane
+  showing each concept's frontmatter, rendered markdown body, the concepts it
+  **links to**, and the concepts that **cite it** (backlinks). Output is
+  `viz.html`. Self-contained, no CDN.
+- **General OKF consumer.** A new `bundle_reader` reads concepts and derives
+  edges from concept-to-concept markdown links in the bodies (the spec's link
+  graph), so `visualize` works on bundles produced by any tool — verified on
+  Google's `reference-agent` sample bundles (ga4, stackoverflow, crypto). It
+  still uses okf-kit's recorded `state.json` edges when present.
+
+### Fixed
+- **Graph/detail edges ignore navigation chrome.** Link extraction now keeps a
+  content-only link set (from `<main>`/`<article>`, minus `nav`/`header`/
+  `footer`/`aside`), used for edges — so they're real references, not the shared
+  sidebar on every page. On the Backstage docs this cut edges from 6,977 to 550.
+  Crawling still uses all links so pages stay discoverable.
+
 ## 0.1.8 — 2026-07-06
 
 ### Fixed
@@ -146,6 +168,7 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.2.0]: https://github.com/vinodborole/okf-kit/releases/tag/v0.2.0
 [0.1.8]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.8
 [0.1.7]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.7
 [0.1.6]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.6

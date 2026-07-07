@@ -67,7 +67,10 @@ def compute_edges(pages, present_paths: set[str]) -> list[list[str]]:
     edges: set[tuple[str, str]] = set()
     for page in pages:
         src = bundle_path_for(page.url)
-        for link in page.links:
+        # Prefer content-only links (real references); fall back to all links
+        # when a fetcher didn't compute them (content_links is None).
+        links = page.content_links if page.content_links is not None else page.links
+        for link in links:
             dst = bundle_path_for(link)
             if dst in present_paths and dst != src:
                 edges.add((src, dst))
