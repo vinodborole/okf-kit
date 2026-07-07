@@ -133,7 +133,18 @@ section{padding:68px 0;border-top:1px solid var(--rule)}
 .step p{margin:8px 0 0;font-size:13.5px;color:var(--muted)}
 
 /* bundles */
-#bundlegrid{margin-top:38px}
+.filterbar{display:flex;gap:9px;flex-wrap:wrap;margin-top:30px}
+.fchip{font-family:var(--sans);font-size:13.5px;font-weight:600;color:var(--ink-soft);background:var(--paper-2);
+  border:1px solid var(--rule);border-radius:20px;padding:7px 15px;cursor:pointer;transition:all .15s}
+.fchip:hover{border-color:var(--brass);color:var(--brass)}
+.fchip.active{background:var(--brass);color:#fff;border-color:var(--brass)}
+:root[data-theme="dark"] .fchip.active{color:#14161B}
+.catgroup{margin-top:34px}
+.cathead{display:flex;align-items:center;gap:14px;font-family:var(--serif);font-size:22px;font-weight:600;margin:0 0 4px}
+.cathead .rule{height:1px;background:var(--rule);flex:1}
+.cathead .ct{font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:400}
+.catgroup .grid{margin-top:18px}
+#bundlegrid{margin-top:8px}
 .bundle{display:flex;flex-direction:column;background:var(--paper-2);border:1px solid var(--rule);border-radius:14px;
   padding:22px;transition:transform .14s,box-shadow .2s,border-color .2s}
 .bundle:hover{transform:translateY(-3px);box-shadow:var(--shadow-sm);border-color:var(--brass)}
@@ -276,7 +287,8 @@ footer{border-top:1px solid var(--rule);padding:48px 0 60px;color:var(--muted);f
     <h2>Community bundles, ready to pull.</h2>
     <p>Every book in the <a href="https://github.com/vinodborole/awesome-okf-kit" target="_blank" rel="noopener" style="color:var(--brass);font-weight:600">registry</a>, loaded live from GitHub. Add yours and it appears here automatically — no site edit required.</p>
   </div>
-  <div class="grid g3" id="bundlegrid"><div class="loadnote">Loading the registry…</div></div>
+  <div class="filterbar" id="bundlefilters"></div>
+  <div id="bundlegrid"><div class="loadnote">Loading the registry…</div></div>
 </div></section>
 
 <!-- VS GOOGLE -->
@@ -397,13 +409,28 @@ function card(b){
       ${b.repo?'<a href="'+esc(b.repo)+'" target="_blank" rel="noopener">repo ↗</a>':''}</div>
   </div>`;
 }
-const grid=document.getElementById('bundlegrid');
+const grid=document.getElementById('bundlegrid'), fbar=document.getElementById('bundlefilters');
+const CATORDER=["AI & Agents","Web & Frameworks","Libraries & Tools","Platforms & DevOps","Languages & Learning","Other"];
+const addTile=`<a class="bundle" href="https://github.com/vinodborole/awesome-okf-kit/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener" style="text-decoration:none;justify-content:center;align-items:center;text-align:center;border-style:dashed">
+  <div><h3 style="color:var(--brass)">+ Add your book</h3><p style="text-align:center">Publish a bundle and open a PR — it appears here automatically.</p></div></a>`;
 fetch(REG,{cache:'no-cache'}).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{
   const bundles=parseRegistry(t);
   if(!bundles.length){grid.innerHTML='<div class="loadnote">No bundles yet — be the first to add one!</div>';return;}
-  grid.innerHTML=bundles.map(card).join('')+
-    `<a class="bundle reveal in" href="https://github.com/vinodborole/awesome-okf-kit/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener" style="text-decoration:none;justify-content:center;align-items:center;text-align:center;border-style:dashed">
-      <div><h3 style="color:var(--brass)">+ Add your book</h3><p style="text-align:center">Publish a bundle and open a PR — it shows up here automatically.</p></div></a>`;
+  const by={}; bundles.forEach(b=>{const c=(b.category&&b.category.trim())||"Other";(by[c]=by[c]||[]).push(b);});
+  const cats=CATORDER.filter(c=>by[c]).concat(Object.keys(by).filter(c=>!CATORDER.includes(c)));
+  fbar.innerHTML='<button class="fchip active" data-cat="all">All · '+bundles.length+'</button>'+
+    cats.map(c=>'<button class="fchip" data-cat="'+esc(c)+'">'+esc(c)+' · '+by[c].length+'</button>').join('');
+  grid.innerHTML=cats.map(c=>
+    '<div class="catgroup" data-cat="'+esc(c)+'"><div class="cathead">'+esc(c)+
+    '<span class="rule"></span><span class="ct">'+by[c].length+'</span></div><div class="grid g3">'+
+    by[c].map(card).join('')+'</div></div>').join('')+
+    '<div class="catgroup" data-add="1"><div class="grid g3">'+addTile+'</div></div>';
+  fbar.querySelectorAll('.fchip').forEach(ch=>ch.onclick=()=>{
+    fbar.querySelectorAll('.fchip').forEach(x=>x.classList.remove('active')); ch.classList.add('active');
+    const cat=ch.dataset.cat;
+    grid.querySelectorAll('.catgroup').forEach(g=>{
+      g.style.display=(cat==='all'||g.getAttribute('data-cat')===cat||g.hasAttribute('data-add'))?'':'none';});
+  });
 }).catch(()=>{
   grid.innerHTML='<div class="loadnote">Couldn\'t load the registry right now — browse it on <a href="https://github.com/vinodborole/awesome-okf-kit" style="color:var(--brass)">GitHub</a>.</div>';
 });
