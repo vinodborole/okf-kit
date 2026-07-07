@@ -81,7 +81,7 @@ class HttpFetcher:
             html = resp.text
             final_url = normalize_url(str(resp.url))
             markdown = _extract_markdown(html)
-            title, description, links = self._parse(html, str(resp.url))
+            title, description, links, content_links = self._parse(html, str(resp.url))
             if not markdown or not markdown.strip():
                 markdown = self._fallback(html, title)
             markdown = clean_markdown(markdown or "")
@@ -95,6 +95,7 @@ class HttpFetcher:
                 markdown=markdown,
                 description=description,
                 links=links,
+                content_links=content_links,
             )
 
     async def close(self) -> None:
@@ -124,7 +125,7 @@ class HttpFetcher:
             return None
 
     @staticmethod
-    def _parse(html: str, base_url: str) -> tuple[str | None, str | None, list[str]]:
+    def _parse(html: str, base_url: str) -> tuple[str | None, str | None, list[str], list[str]]:
         tree = HTMLParser(html)
         title = None
         if tree.css_first("title"):
@@ -134,22 +135,29 @@ class HttpFetcher:
         if meta and meta.attributes.get("content"):
             description = meta.attributes["content"].strip() or None
 
-        links: list[str] = []
-        seen: set[str] = set()
-        for a in tree.css("a[href]"):
-            href = a.attributes.get("href")
-            if not href:
-                continue
-            absolute = urljoin(base_url, href)
-            if urlparse(absolute).scheme not in ("http", "https"):
-                continue
-            norm = normalize_url(absolute)
-            if norm not in seen:
-                seen.add(norm)
-                links.append(norm)
+        def hrefs(node) -> list[str]:
+            out: list[str] = []
+            seen: set[str] = set()
+            for a in node.css("a[href]"):
+                href = a.attributes.get("href")
+                if not href:
+                    continue
+                absolute = urljoin(base_url, href)
+                if urlparse(absolute).scheme not in ("http", "https"):
+                    continue
+                norm = normalize_url(absolute)
+                if norm not in seen:
+                    seen.add(norm)
+                    out.append(norm)
+            return out
+
+        # All links — used by the crawler to discover pages (nav included, since
+        # the sidebar is often how you reach every page).
+        links = hrefs(tree)
 
         # A client-side meta-refresh redirect (common on section roots like
         # /docs/ that bounce to a first page) has no <a> — follow its target.
+        seen = set(links)
         for m in tree.css("meta"):
             if (m.attributes.get("http-equiv") or "").lower() != "refresh":
                 continue
@@ -160,7 +168,17 @@ class HttpFetcher:
                     seen.add(target)
                     links.insert(0, target)
             break
-        return title, description, links
+
+        # Content links — the graph/edges use these: from the main content
+        # region only, with nav/header/footer/aside chrome removed, so edges are
+        # real in-content references, not shared navigation on every page.
+        root = tree.css_first("main") or tree.css_first("article") or tree.body
+        content_links: list[str] = []
+        if root is not None:
+            for node in root.css('nav, header, footer, aside, [role="navigation"]'):
+                node.decompose()
+            content_links = hrefs(root)
+        return title, description, links, content_links
 
     @staticmethod
     def _fallback(html: str, title: str | None) -> str:
