@@ -6,6 +6,7 @@
     okf sync <dir>        incrementally update a bundle            (M2)
     okf list / get        registry                                 (M3)
     okf chat / visualize / serve-mcp   consume a bundle            (M3)
+    okf serve             local HTTP API for GUIs (okf-kit[serve])
 """
 
 from __future__ import annotations
@@ -90,6 +91,13 @@ def _build_parser() -> argparse.ArgumentParser:
     mcpp = sub.add_parser("serve-mcp", help="Serve bundles over MCP (stdio)")
     mcpp.add_argument("names", nargs="*", help="Bundle names/dirs (default: all local)")
     mcpp.add_argument("--all", action="store_true", help="Serve all local bundles")
+
+    servep = sub.add_parser("serve", help="Run the local HTTP API for GUIs (needs okf-kit[serve])")
+    servep.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
+    servep.add_argument("--port", type=int, default=0, help="Port (default: 0 = pick a free one)")
+    servep.add_argument("--token", default="auto", help="Bearer token ('auto' mints a random one)")
+    servep.add_argument("--ui", default=None, help="Serve a built UI directory at /")
+    servep.add_argument("--parent-pid", type=int, default=None, help="Exit when this PID dies")
 
     for name, milestone in _LATER.items():
         p = sub.add_parser(name, help=f"[{milestone}] see docs")
@@ -182,6 +190,11 @@ def main(argv: list[str] | None = None) -> int:
         from .mcp import serve_mcp
 
         return serve_mcp(args.names, all_=args.all)
+    if cmd == "serve":
+        from .serve.run import serve
+
+        return serve(host=args.host, port=args.port, token=args.token,
+                     ui=args.ui, parent_pid=args.parent_pid)
 
     return 2
 
