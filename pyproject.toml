@@ -1,6 +1,6 @@
 [project]
 name = "okf-kit"
-version = "0.2.0"
+version = "0.3.0"
 description = "Turn any website into a portable, agent-ready Open Knowledge Format (OKF) bundle — build, sync, and chat, no LLM required to start."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -37,7 +37,10 @@ anthropic = ["anthropic>=0.40"]
 enrich = ["openai>=1.60"]
 # MCP server for Claude Code/Desktop, Cursor, etc.
 mcp = ["mcp>=1.2.0"]
-all = ["okf-kit[js,chat,anthropic,enrich,mcp]"]
+# Local HTTP API for GUIs (the desktop app / any web UI). Consume-only — does
+# not pull the crawl stack, so it stays light to bundle.
+serve = ["fastapi>=0.110", "uvicorn>=0.27", "keyring>=24"]
+all = ["okf-kit[js,chat,anthropic,enrich,mcp,serve]"]
 dev = ["pytest>=7.0", "pytest-asyncio>=0.23", "ruff>=0.6", "build>=1.0"]
 
 [project.urls]

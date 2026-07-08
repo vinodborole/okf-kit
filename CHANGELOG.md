@@ -3,6 +3,27 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.3.0 — 2026-07-08
+
+### Added
+- **`okf serve` — a local HTTP API for GUIs** (new `okf-kit[serve]` extra:
+  FastAPI + uvicorn + keyring). Wraps registry / read / chat / settings so a
+  desktop app or any web UI can be pure UI over an API, with no duplicated logic.
+  Loopback-only, guarded by a per-launch bearer token; prints a machine-readable
+  `{"event":"ready","url":…,"token":…}` line for a host shell and can exit with
+  its parent (`--parent-pid`). Endpoints: registry, books (list/get/install SSE/
+  remove), read (`toc`, `concept` with heading anchors + prev/next), chat
+  (sessions + `ask` SSE that streams tokens then cited sources), and settings
+  (API key stored in the OS keychain via keyring, never returned). Consume-only —
+  it does **not** pull the crawl stack, so it stays light to bundle in an app.
+- **Deep-linkable chat citations.** Chat sources now resolve to
+  `{concept_id, title, section, anchor, snippet}` (over the API) so a UI can jump
+  from a citation straight to that section in the reader.
+
+### Changed
+- `make_provider(...)` accepts an optional `api_key` (used by `okf serve` to pass
+  a keychain-stored key); it still falls back to the provider's env var.
+
 ## 0.2.0 — 2026-07-07
 
 ### Changed
@@ -168,6 +189,7 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.3.0]: https://github.com/vinodborole/okf-kit/releases/tag/v0.3.0
 [0.2.0]: https://github.com/vinodborole/okf-kit/releases/tag/v0.2.0
 [0.1.8]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.8
 [0.1.7]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.7

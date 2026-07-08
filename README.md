@@ -149,6 +149,20 @@ docker build -t okf-kit-mcp .
 docker run -i --rm okf-kit-mcp   # speaks MCP over stdio; serve another bundle: … okf-kit-mcp okf serve-mcp <name>
 ```
 
+### Serve a local API (for GUIs)
+
+```bash
+pip install "okf-kit[serve]"
+okf serve                        # prints {"event":"ready","url":…,"token":…}
+```
+
+A loopback-only HTTP API that wraps registry / read / chat / settings, so a
+desktop app or web UI can be pure UI over an API (no duplicated logic). Guarded
+by a per-launch bearer token. Endpoints cover browsing the registry, installing/
+removing books, reading (`toc` + `concept` with heading anchors), chat with saved
+sessions and cited, deep-linkable sources, and settings (API key kept in the OS
+keychain). Consume-only, so it stays light to bundle.
+
 ### Registry
 
 ```bash

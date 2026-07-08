@@ -115,12 +115,17 @@ class AnthropicProvider:
             {"type": "tool_result", "tool_use_id": call.id, "content": content}]}
 
 
-def make_provider(provider: str | None, model: str | None, base_url: str | None):
-    """Return a provider instance, or None to use the zero-key retrieval fallback."""
+def make_provider(provider: str | None, model: str | None, base_url: str | None,
+                  api_key: str | None = None):
+    """Return a provider instance, or None to use the zero-key retrieval fallback.
+
+    `api_key`, when given (e.g. from the OS keychain via `okf serve`), takes
+    precedence over the provider's environment variable.
+    """
     if provider in (None, "none"):
         return None
     if provider == "anthropic":
-        key = os.environ.get("ANTHROPIC_API_KEY")
+        key = api_key or os.environ.get("ANTHROPIC_API_KEY")
         if not key:
             return None
         return AnthropicProvider(model or "claude-sonnet-5", key)
@@ -128,7 +133,7 @@ def make_provider(provider: str | None, model: str | None, base_url: str | None)
         preset = _PRESETS.get(provider, {})
         url = base_url or preset.get("base_url")
         key_env = preset.get("key_env")
-        key = os.environ.get(key_env) if key_env else None
+        key = api_key or (os.environ.get(key_env) if key_env else None)
         model = model or preset.get("default_model", "gpt-4o-mini")
         if provider == "ollama":
             key = key or "ollama"  # Ollama ignores the key but the SDK requires one
