@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vinodborole.github.io/okf-kit/sitemap.xml
