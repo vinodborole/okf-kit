@@ -183,9 +183,49 @@ docs-okf/
     .okf-kit/state.json      crawl config, per-page content hashes, link edges
 ```
 
+## FAQ
+
+**Does okf-kit require an LLM or API key?**
+No. The entire build path — crawl, structure, validate — runs with zero API keys
+and zero model calls. An LLM is optional: you only need one for synthesized
+`okf chat` answers (use Ollama for fully offline) or the optional `--enrich` step.
+With no model configured, `okf chat` still answers from a zero-key retrieval
+fallback, with citations.
+
+**What is OKF, and is okf-kit official?**
+OKF (Open Knowledge Format) is an open, vendor-neutral spec for representing
+knowledge as markdown files with a little YAML frontmatter (`type`, `title`,
+`description`, `resource`, `tags`, `timestamp`), introduced by Google as part of
+its Knowledge Catalog work. **okf-kit is an independent, unofficial**
+implementation — and it interoperates: it validates and renders Google's own
+reference bundles unchanged.
+
+**How is okf-kit different from Google's OKF tools?**
+Google's reference implementation targets BigQuery / data-catalog metadata with
+an LLM enrichment agent. okf-kit targets **any website** with a deterministic
+crawler that needs no LLM, no cloud, and no API key — and adds incremental sync,
+offline chat, an MCP server, and a community registry. Same format,
+complementary mission.
+
+**Can I use it with Claude Code / Cursor?**
+Yes — `okf serve-mcp <bundle>` is a stdio MCP server exposing `list_bundles`,
+`list_directory`, `read_concept`, and `search_bundle`, so any MCP client can read
+a project's up-to-date docs locally. There's also a Docker image.
+
+**Does it work offline?**
+Yes. Building a bundle needs network only to crawl the site once; after that it's
+all local files. `okf chat` runs fully offline with Ollama, or with the zero-key
+retrieval fallback.
+
+**What sites can it crawl?**
+Any static or server-rendered HTML site (docs, wikis, blogs). It respects
+robots.txt and scopes the crawl to the seed's path by default. JavaScript-rendered
+SPAs need the optional `[js]` extra (a real browser); extraction quality varies by
+site.
+
 ## Development
 
-`pip install -e ".[dev]"`, then `pytest -q` (37 tests, fully offline) and
+`pip install -e ".[dev]"`, then `pytest -q` (fully offline) and
 `ruff check okf_kit tests`. See [CONTRIBUTING.md](CONTRIBUTING.md) and the
 [CHANGELOG](CHANGELOG.md).
 
