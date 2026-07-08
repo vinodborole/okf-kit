@@ -44,6 +44,22 @@
   ]
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is okf-kit?", "acceptedAnswer": { "@type": "Answer", "text": "okf-kit is a lightweight, open-source Python library and CLI that turns any website into a portable Open Knowledge Format (OKF) bundle — a folder of plain markdown files that AI agents, tools, and people can all read. It runs a deterministic crawler (no LLM required), then lets you chat with the result offline, serve it to coding agents over MCP, and keep it in sync as the site changes." } },
+    { "@type": "Question", "name": "Does okf-kit require an LLM or API key?", "acceptedAnswer": { "@type": "Answer", "text": "No. The entire build path — crawl, structure, validate — runs with zero API keys and zero model calls. An LLM is optional: you only need one for synthesized chat answers (use Ollama for fully offline), or the optional enrich step. With no model configured, okf chat still answers from a zero-key retrieval fallback, with citations." } },
+    { "@type": "Question", "name": "What is the Open Knowledge Format (OKF)?", "acceptedAnswer": { "@type": "Answer", "text": "OKF is an open, vendor-neutral specification for representing knowledge as plain markdown files with a small set of YAML frontmatter fields (type, title, description, resource, tags, timestamp). It was introduced by Google as part of its Knowledge Catalog work. okf-kit is an independent, unofficial implementation of the spec, and it interoperates: okf-kit validates and renders Google's own reference bundles unchanged." } },
+    { "@type": "Question", "name": "How is okf-kit different from Google's OKF tools?", "acceptedAnswer": { "@type": "Answer", "text": "Google's reference implementation targets BigQuery and data-catalog metadata using an LLM enrichment agent. okf-kit targets any website with a deterministic crawler that needs no LLM, no cloud, and no API key, and adds incremental sync, offline chat, an MCP server for coding agents, and a community registry. Same format, complementary mission; the two interoperate." } },
+    { "@type": "Question", "name": "Can I use okf-kit with Claude Code, Cursor, or other MCP clients?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. okf serve-mcp runs a stdio MCP server exposing list_bundles, list_directory, read_concept, and search_bundle, so Claude Code, Cursor, or any MCP client can read a project's up-to-date docs locally. There is also a Docker image for running it as a container." } },
+    { "@type": "Question", "name": "Does okf-kit work offline?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Building a bundle only needs network access to crawl the site once; after that it is all local files. okf chat works fully offline with a local model via Ollama, and even with no model configured it answers from a zero-key retrieval fallback." } },
+    { "@type": "Question", "name": "What websites can okf-kit crawl?", "acceptedAnswer": { "@type": "Answer", "text": "Any static or server-rendered HTML site — documentation sites, wikis, blogs. It respects robots.txt and scopes the crawl to the seed's path by default. JavaScript-rendered single-page apps need the optional js extra, which uses a real browser. Extraction quality varies by site." } },
+    { "@type": "Question", "name": "Is okf-kit free and open source?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — okf-kit is free and open source under the Apache-2.0 license. Install it with pip install okf-kit. The source is on GitHub, and there is a community registry of ready-made bundles you can pull with okf get." } }
+  ]
+}
+</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%239A6B1F'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='%23F4F3EF' font-family='Georgia,serif' font-weight='700'%3EK%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -218,6 +234,15 @@ section{padding:68px 0;border-top:1px solid var(--rule)}
 .band .btn-ghost{color:#EDEBE4;border-color:rgba(237,235,228,.28)}
 .band .btn-ghost:hover{border-color:var(--brass-2);color:var(--brass-2)}
 
+.faq{margin-top:34px;max-width:820px}
+.faq details{border-bottom:1px solid var(--rule)}
+.faq summary{font-family:var(--serif);font-size:19px;font-weight:600;cursor:pointer;padding:18px 0;
+  list-style:none;display:flex;justify-content:space-between;align-items:center;gap:18px;color:var(--ink)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:var(--brass);font-size:26px;font-weight:400;line-height:1;flex:none}
+.faq details[open] summary::after{content:"–"}
+.faq details p{color:var(--ink-soft);margin:0 0 20px;font-size:16px;line-height:1.65;max-width:72ch}
+.faq details p a{color:var(--accent);font-weight:600}
 footer{border-top:1px solid var(--rule);padding:48px 0 60px;color:var(--muted);font-size:14px}
 .foot{display:flex;flex-wrap:wrap;gap:24px;align-items:center}
 .foot a{color:var(--ink-soft);text-decoration:none;margin-right:18px}
@@ -238,6 +263,7 @@ footer{border-top:1px solid var(--rule);padding:48px 0 60px;color:var(--muted);f
     <a href="#how">How it works</a>
     <a href="#bundles">Bundles</a>
     <a href="#vs">vs Google OKF</a>
+    <a href="#faq">FAQ</a>
     <a href="#build">Build one</a>
     <a class="gh" href="https://github.com/vinodborole/okf-kit" target="_blank" rel="noopener">GitHub ↗</a>
     <button class="iconbtn" id="theme" title="Toggle theme" aria-label="Toggle theme">◐</button>
@@ -338,6 +364,32 @@ footer{border-top:1px solid var(--rule);padding:48px 0 60px;color:var(--muted);f
     </tbody>
   </table></div></div>
   <div class="interop reveal">✓ <b>They interoperate.</b> okf-kit validates and renders Google's own sample bundles — same spec, byte-compatible. Produce with one, consume with the other.</div>
+</div></section>
+
+<!-- FAQ -->
+<section id="faq"><div class="wrap">
+  <div class="sec-head reveal">
+    <div class="eyebrow">Questions</div>
+    <h2>Frequently asked</h2>
+  </div>
+  <div class="faq reveal">
+    <details open><summary>What is okf-kit?</summary>
+      <p>okf-kit is a lightweight, open-source Python library and CLI that turns any website into a portable <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md" target="_blank" rel="noopener">Open Knowledge Format (OKF)</a> bundle — a folder of plain markdown files that AI agents, tools, and people can all read. It runs a deterministic crawler (no LLM required), then lets you chat with the result offline, serve it to coding agents over MCP, and keep it in sync as the site changes.</p></details>
+    <details><summary>Does okf-kit require an LLM or API key?</summary>
+      <p>No. The entire build path — crawl, structure, validate — runs with zero API keys and zero model calls. An LLM is optional: you only need one for synthesized <code>okf chat</code> answers (use Ollama for fully offline), or the optional <code>--enrich</code> step. With no model configured at all, <code>okf chat</code> still answers from a zero-key retrieval fallback, with citations.</p></details>
+    <details><summary>What is the Open Knowledge Format (OKF)?</summary>
+      <p>OKF is an open, vendor-neutral specification for representing knowledge as plain markdown files with a small set of YAML frontmatter fields (type, title, description, resource, tags, timestamp). It was introduced by Google as part of its Knowledge Catalog work. okf-kit is an <strong>independent, unofficial</strong> implementation of the spec — and it interoperates: okf-kit validates and renders Google's own reference bundles unchanged.</p></details>
+    <details><summary>How is okf-kit different from Google's OKF tools?</summary>
+      <p>Google's reference implementation targets BigQuery / data-catalog metadata using an LLM enrichment agent. okf-kit targets <strong>any website</strong> with a deterministic crawler that needs no LLM, no cloud, and no API key — and adds incremental sync, offline chat, an MCP server for coding agents, and a community registry. Same format, complementary mission; the two interoperate.</p></details>
+    <details><summary>Can I use okf-kit with Claude Code, Cursor, or other MCP clients?</summary>
+      <p>Yes. <code>okf serve-mcp &lt;bundle&gt;</code> runs a stdio MCP server exposing <code>list_bundles</code>, <code>list_directory</code>, <code>read_concept</code>, and <code>search_bundle</code>, so Claude Code, Cursor, or any MCP client can read a project's up-to-date docs locally. There's also a Docker image for running it as a container.</p></details>
+    <details><summary>Does okf-kit work offline?</summary>
+      <p>Yes. Building a bundle only needs network access to crawl the site once; after that it's all local files. <code>okf chat</code> works fully offline with a local model via Ollama, and even with no model configured it answers from a zero-key retrieval fallback.</p></details>
+    <details><summary>What websites can okf-kit crawl?</summary>
+      <p>Any static or server-rendered HTML site — documentation sites, wikis, blogs. It respects robots.txt and scopes the crawl to the seed's path by default. JavaScript-rendered single-page apps need the optional <code>[js]</code> extra, which uses a real browser. Extraction quality varies by site.</p></details>
+    <details><summary>Is okf-kit free and open source?</summary>
+      <p>Yes — okf-kit is free and open source under the Apache-2.0 license. Install it with <code>pip install okf-kit</code>. The source is on <a href="https://github.com/vinodborole/okf-kit" target="_blank" rel="noopener">GitHub</a>, and there's a <a href="https://github.com/vinodborole/awesome-okf-kit" target="_blank" rel="noopener">community registry</a> of ready-made bundles you can pull with <code>okf get &lt;name&gt;</code>.</p></details>
+  </div>
 </div></section>
 
 <!-- BUILD ONE -->
