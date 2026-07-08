@@ -10,6 +10,8 @@ import os
 
 import pytest
 
+pytest.importorskip("fastapi", reason="needs the [serve] extra")
+
 # Force keyring to fail → settings uses the file fallback (deterministic, headless-safe).
 os.environ["PYTHON_KEYRING_BACKEND"] = "keyring.backends.fail.Keyring"
 
