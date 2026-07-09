@@ -33,14 +33,22 @@ _NO_FALLBACK_KW = (
 )
 
 
+# Heading permalink anchors like `[¶](#slug)` / `[#](#slug)` / `[](#slug)` that
+# `include_links` surfaces — decorative, not real links. Strip only these (keep
+# links that have real anchor text, e.g. a "see [Ownership](#ownership)" cross-ref).
+_PERMALINK = re.compile(r"\s*\[[¶#§🔗\s​]*\]\(#[^)]*\)")
+
+
 def _extract_markdown(html: str) -> str | None:
-    return trafilatura.extract(
+    md = trafilatura.extract(
         html,
         output_format="markdown",
         include_tables=True,
         include_formatting=True,
+        include_links=True,  # keep in-content links so bundles cross-reference each other
         **{_NO_FALLBACK_KW: True},
     )
+    return _PERMALINK.sub("", md) if md else md
 
 
 class HttpFetcher:
