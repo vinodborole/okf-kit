@@ -33,7 +33,11 @@ def ordered_concepts(bundle_dir) -> list[dict]:
     for p in files:
         cid = p.relative_to(root).as_posix()[:-3]
         fm, _ = _split_frontmatter(p.read_text(encoding="utf8"))
-        out.append({"id": cid, "title": fm.get("title") or cid.split("/")[-1]})
+        out.append({
+            "id": cid,
+            "title": fm.get("title") or cid.split("/")[-1],
+            "resource": fm.get("resource") or "",  # original page URL — lets a GUI
+        })                                          # map in-bundle links to concepts
     return out
 
 
@@ -51,7 +55,8 @@ def build_toc(concepts: list[dict]) -> list[dict]:
         items = []
         for (kind, name), val in node.items():
             if kind == "file":
-                items.append({"kind": "concept", "id": val["id"], "title": val["title"]})
+                items.append({"kind": "concept", "id": val["id"], "title": val["title"],
+                              "resource": val.get("resource", "")})
             else:
                 items.append({"kind": "section", "title": _prettify(name), "children": to_list(val)})
         return items

@@ -3,6 +3,14 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.3.1 — 2026-07-09
+
+### Added
+- **`GET /api/books/{name}/toc` now includes each concept's `resource`** (its
+  original page URL). This lets a GUI reader map an in-bundle link to the concept
+  it points at and navigate in-app, instead of opening the browser for links to
+  pages that are already in the bundle.
+
 ## 0.3.0 — 2026-07-08
 
 ### Added
@@ -189,6 +197,7 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.3.1]: https://github.com/vinodborole/okf-kit/releases/tag/v0.3.1
 [0.3.0]: https://github.com/vinodborole/okf-kit/releases/tag/v0.3.0
 [0.2.0]: https://github.com/vinodborole/okf-kit/releases/tag/v0.2.0
 [0.1.8]: https://github.com/vinodborole/okf-kit/releases/tag/v0.1.8

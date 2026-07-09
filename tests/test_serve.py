@@ -34,8 +34,8 @@ def client(tmp_path, monkeypatch):
         "---\ntype: Web Page\ntitle: Introduction\n---\n# Introduction\n\nWelcome.\n", encoding="utf8"
     )
     (b / "pages" / "ownership.md").write_text(
-        "---\ntype: Web Page\ntitle: Ownership\n---\n# Ownership\n\n"
-        "## Borrowing\n\nOwnership means every value has exactly one owner.\n",
+        "---\ntype: Web Page\ntitle: Ownership\nresource: https://doc.rust-lang.org/book/ch04-01.html\n---\n"
+        "# Ownership\n\n## Borrowing\n\nOwnership means every value has exactly one owner.\n",
         encoding="utf8",
     )
     (b / ".okf-kit").mkdir()
@@ -72,6 +72,9 @@ def test_toc_and_concept(client):
     toc = client.get("/api/books/testbook/toc", headers=AUTH).json()
     ids = _concept_ids(toc)
     assert "pages/intro" in ids and "pages/ownership" in ids
+    # toc carries each concept's original URL so a GUI can map links → concepts
+    own = _find_concept(toc, "pages/ownership")
+    assert own["resource"] == "https://doc.rust-lang.org/book/ch04-01.html"
 
     c = client.get("/api/books/testbook/concept", params={"id": "pages/ownership"}, headers=AUTH).json()
     assert c["title"] == "Ownership"
@@ -123,6 +126,17 @@ def _concept_ids(nodes):
         else:
             out += _concept_ids(n["children"])
     return out
+
+
+def _find_concept(nodes, cid):
+    for n in nodes:
+        if n["kind"] == "concept" and n["id"] == cid:
+            return n
+        if n["kind"] == "section":
+            found = _find_concept(n["children"], cid)
+            if found:
+                return found
+    return None
 
 
 def _parse_sse(text):
