@@ -163,6 +163,10 @@ removing books, reading (`toc` + `concept` with heading anchors), chat with save
 sessions and cited, deep-linkable sources, and settings (API key kept in the OS
 keychain). Consume-only, so it stays light to bundle.
 
+> **Built on this:** [**okf-desktop**](https://github.com/vinodborole/okf-desktop) —
+> a lightweight desktop app (React + pywebview) that reads and chats with your
+> bundles like a book, entirely over `okf serve`.
+
 ### Registry
 
 ```bash
