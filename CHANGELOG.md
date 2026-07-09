@@ -3,6 +3,15 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.3.2 — 2026-07-09
+
+### Changed
+- **Markdown extraction now keeps in-content links** (`include_links=True`), so a
+  bundle's pages cross-reference each other and section anchors are preserved.
+  This is what lets a reader map a doc link to the concept it points at and
+  navigate in-app. Decorative heading permalink anchors (`[¶](#slug)`) are
+  stripped so headings stay clean. Applies on the next crawl/`sync`.
+
 ## 0.3.1 — 2026-07-09
 
 ### Added
@@ -197,6 +206,7 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.3.2]: https://github.com/vinodborole/okf-kit/releases/tag/v0.3.2
 [0.3.1]: https://github.com/vinodborole/okf-kit/releases/tag/v0.3.1
 [0.3.0]: https://github.com/vinodborole/okf-kit/releases/tag/v0.3.0
 [0.2.0]: https://github.com/vinodborole/okf-kit/releases/tag/v0.2.0
