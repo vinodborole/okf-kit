@@ -1,3 +1,3 @@
 """okf-kit — turn any website into a portable, agent-ready OKF bundle."""
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
