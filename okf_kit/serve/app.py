@@ -70,7 +70,7 @@ def create_app(token: str, ui_dir: str | None = None):
             try:
                 _registry_cache["entries"] = await run_in_threadpool(load_registry, DEFAULT_REGISTRY)
                 _registry_cache["at"] = now
-            except Exception as exc:  # noqa: BLE001 — offline: report, don't 500
+            except (Exception, SystemExit) as exc:  # offline / bad registry: report, don't 500
                 raise HTTPException(status_code=502, detail=f"can't reach registry: {exc}") from exc
         installed = {b["name"] for b in local_bundles()}
         entries = [
@@ -119,7 +119,7 @@ def create_app(token: str, ui_dir: str | None = None):
                 yield sse("progress", {"phase": "validating"})
                 ok = await run_in_threadpool(validate_bundle, dest, quiet=True)
                 yield sse("done", {"book": _book_view(name), "conformant": bool(ok)})
-            except Exception as exc:  # noqa: BLE001
+            except (Exception, SystemExit) as exc:
                 yield sse("error", {"message": str(exc)})
 
         return StreamingResponse(gen(), media_type="text/event-stream")
@@ -184,7 +184,7 @@ def create_app(token: str, ui_dir: str | None = None):
         async def gen():
             try:
                 result = await run_in_threadpool(_run_ask, bundle, name, sid, question, s)
-            except Exception as exc:  # noqa: BLE001
+            except (Exception, SystemExit) as exc:  # SystemExit: a missing extra must not kill the server
                 yield sse("error", {"message": describe_provider_error(exc, s["provider"], s["model"])})
                 return
             for chunk in _chunks(result["answer"]):

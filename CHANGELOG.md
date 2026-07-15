@@ -3,6 +3,16 @@
 All notable changes to okf-kit are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 0.3.3 — 2026-07-15
+
+### Fixed
+- **`okf serve` no longer dies when a provider/registry call raises `SystemExit`.**
+  A missing optional extra (e.g. chatting with OpenAI/Ollama when `openai` isn't
+  installed) raised `SystemExit`, which — being a `BaseException` — slipped past
+  the handlers' `except Exception` and took down the whole in-process server, so
+  every later request hung. The registry, install, and chat handlers now also
+  catch `SystemExit` and return a normal error event instead.
+
 ## 0.3.2 — 2026-07-09
 
 ### Changed
@@ -206,6 +216,7 @@ okf chat docs-okf --provider ollama              # chat offline, no key
   Install `[js]` in its own environment for now. Tracked in
   [#6](https://github.com/vinodborole/okf-kit/issues/6), fix planned for 0.1.1.
 
+[0.3.3]: https://github.com/vinodborole/okf-kit/releases/tag/v0.3.3
 [0.3.2]: https://github.com/vinodborole/okf-kit/releases/tag/v0.3.2
 [0.3.1]: https://github.com/vinodborole/okf-kit/releases/tag/v0.3.1
 [0.3.0]: https://github.com/vinodborole/okf-kit/releases/tag/v0.3.0
